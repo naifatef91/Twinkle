@@ -117,9 +117,13 @@ private fun ReadyBody(s: PcState.Ready, sharedCount: Int, onPickFiles: () -> Uni
     ) {
         PcConnectionCard(s.stats.lastSeenMs, s.stats.lastClientAddress)
 
-        PcTabs(tab, listOf(stringResource(R.string.pc_tab_wifi), stringResource(R.string.pc_usb_title))) { tab = it }
+        PcTabs(tab, listOf(stringResource(R.string.pc_tab_wifi), stringResource(R.string.pc_tab_lan), stringResource(R.string.pc_usb_title))) { tab = it }
 
-        if (tab == 0) WifiPanel(s.ssid, s.pass, s.band, s.url) else PcUsbCard(s.usb)
+        when (tab) {
+            0 -> WifiPanel(s.ssid, s.pass, s.band, s.url)
+            1 -> LanPanel(s.lan)
+            else -> PcUsbCard(s.usb)
+        }
 
         // What is happening now
         Text(stringResource(R.string.pc_activity), style = MaterialTheme.typography.titleSmall, color = c.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
@@ -202,6 +206,64 @@ private fun WifiPanel(ssid: String, pass: String, band: String, url: String) {
     }
 }
 
+/**
+ * Same-network route: any device on the phone's router (Wi-Fi or Ethernet) opens the link. Closed until the
+ * user switches it on; then each browser needs the six-digit PIN, which the QR code carries in its fragment.
+ */
+@Composable
+private fun LanPanel(lan: app.barq.web.LanStatus) {
+    val c = MaterialTheme.colorScheme
+    val x = MaterialTheme.extras
+    val url = lan.url
+    BarqCard(Modifier.fillMaxWidth(), tint = if (lan.open && url != null) x.okSoft else null) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IconBadge(BarqIcons.Wifi, c.primaryContainer, c.primary)
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.pc_lan_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.pc_lan_hint), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                }
+            }
+            if (url == null) {
+                Text(stringResource(R.string.pc_lan_none), style = MaterialTheme.typography.bodyMedium, color = c.error)
+                return@Column
+            }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.pc_lan_allow), style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.pc_lan_allow_hint), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                }
+                BarqSwitch(lan.open) { PcSession.setLanOpen(it) }
+            }
+            val pin = lan.pin
+            if (lan.open && pin != null) {
+                // Shown without "http://" so the whole address and port fit; the copy button still copies the full URL.
+                CopyRow(label = stringResource(R.string.pc_step2), value = url, display = url.removePrefix("http://"))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(stringResource(R.string.pc_lan_pin), style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
+                        Text(
+                            ltr(pin.chunked(3).joinToString(" ")), style = MaterialTheme.typography.headlineMedium,
+                            fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, color = c.primary,
+                        )
+                        TextButton(onClick = { PcSession.newLanPin() }, contentPadding = PaddingValues(horizontal = 0.dp)) {
+                            Text(stringResource(R.string.pc_lan_new_pin), color = c.primary)
+                        }
+                    }
+                    val qrText = lan.qrUrl ?: url
+                    val qr = remember(qrText) { qrBitmap(qrText, sizePx = 512) }
+                    Box(
+                        Modifier.size(132.dp).clip(RoundedCornerShape(14.dp)).background(Color.White).padding(8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) { Image(qr.asImageBitmap(), contentDescription = url, Modifier.fillMaxSize()) }
+                }
+                Text(stringResource(R.string.pc_lan_qr_hint), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                Text(stringResource(R.string.pc_lan_isolation), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+            }
+        }
+    }
+}
+
 /** The three live numbers; separate from the rest so a transfer only redraws this row. */
 @Composable
 private fun LiveStats(served: Long, received: Long, client: String?) {
@@ -212,8 +274,14 @@ private fun LiveStats(served: Long, received: Long, client: String?) {
     }
 }
 
+/**
+ * Wraps [s] in a left-to-right isolate: in the Arabic layout "678 742" would otherwise be laid out as "742 678",
+ * while the line keeps its right-hand alignment.
+ */
+private fun ltr(s: String) = "⁦$s⁩"
+
 @Composable
-private fun CopyRow(label: String, value: String) {
+private fun CopyRow(label: String, value: String, display: String = value) {
     val c = MaterialTheme.colorScheme
     val clipboard = LocalClipboardManager.current
     var copied by remember { mutableStateOf(false) }
@@ -224,7 +292,7 @@ private fun CopyRow(label: String, value: String) {
     ) {
         Column(Modifier.weight(1f)) {
             Text(label, style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Monospace, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(ltr(display), style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Monospace, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         TextButton(onClick = { clipboard.setText(AnnotatedString(value)); copied = true }) {
             Text(stringResource(if (copied) R.string.pc_copied else R.string.pc_copy), color = c.primary)

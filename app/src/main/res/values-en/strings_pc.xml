@@ -50,4 +50,14 @@
     <string name="pc_tab_wifi">Over Wi-Fi</string>
     <string name="pc_options">Network options</string>
     <string name="pc_activity">Activity</string>
+    <string name="pc_tab_lan">Same network</string>
+    <string name="pc_lan_title">Devices on the same network</string>
+    <string name="pc_lan_hint">Any computer or device on the same router, over Wi-Fi or an Ethernet cable, opens the link and enters the PIN.</string>
+    <string name="pc_lan_none">The phone is not on a Wi-Fi network. Join the same router network the computer is on.</string>
+    <string name="pc_lan_allow">Allow devices on this network</string>
+    <string name="pc_lan_allow_hint">Off by default. Every device needs the PIN before it can see any file.</string>
+    <string name="pc_lan_pin">PIN</string>
+    <string name="pc_lan_new_pin">New PIN</string>
+    <string name="pc_lan_qr_hint">Scan with another device\'s camera to sign in directly.</string>
+    <string name="pc_lan_isolation">If the page does not open, the network may block devices from reaching each other (guest and public Wi-Fi). Use Wi-Fi Direct or the cable instead.</string>
 </resources>

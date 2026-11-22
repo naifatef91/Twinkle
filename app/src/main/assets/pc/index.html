@@ -134,11 +134,30 @@
 
   footer { grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 12.5px; line-height: 1.9; padding-top: 4px; }
   footer code { font-family: Consolas, Menlo, monospace; font-size: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; direction: ltr; unicode-bidi: isolate; color: var(--ink); }
+  /* PIN sign-in for devices on the phone's own network */
+  .gate { position: fixed; inset: 0; z-index: 20; background: rgba(11,20,25,.94); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .gate.hidden { display: none; }
+  .gate form { width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-card); padding: 24px; display: grid; gap: 14px; text-align: center; }
+  .gate h2 { margin: 0; font-size: 20px; }
+  .gate p { margin: 0; color: var(--muted); font-size: 13px; }
+  .gate input { width: 100%; min-height: 56px; border-radius: var(--r-btn); border: 1px solid var(--line-2); background: var(--bg); color: var(--ink); font-size: 28px; letter-spacing: .4em; text-align: center; direction: ltr; font-family: Consolas, Menlo, monospace; }
+  .gate input:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+  .gate .msg { min-height: 20px; color: var(--err); font-size: 13px; }
   .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
 </head>
 <body>
 <div class="topline" id="topline" aria-hidden="true"><i id="topfill"></i></div>
+
+<div class="gate hidden" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <form id="gateForm" autocomplete="off">
+    <h2 id="gateTitle">أدخل رمز الهاتف</h2>
+    <p>تجده على الهاتف في وضع الكمبيوتر ← تبويب «نفس الشبكة».</p>
+    <input id="gatePin" inputmode="numeric" pattern="[0-9]*" maxlength="6" aria-label="الرمز المكوَّن من 6 أرقام" placeholder="••••••">
+    <div class="msg" id="gateMsg" role="alert"></div>
+    <button type="submit" class="btn mint" id="gateGo">دخول</button>
+  </form>
+</div>
 
 <div class="wrap">
 <header>
@@ -254,6 +273,7 @@
     if (pillText.textContent !== text) pillText.textContent = text;
   }
   function updatePill() {
+    if (locked) return;
     var fresh = lastOk && (Date.now() - lastOk < 8000);
     if (fails >= 5) setPill('err', 'انقطع الاتصال بالهاتف');
     else if (fails >= 2) setPill('warn', 'جارٍ إعادة الاتصال…');
@@ -261,11 +281,51 @@
     else if (lastOk) setPill('warn', 'جارٍ إعادة الاتصال…');
     else setPill('wait', 'جارٍ الاتصال بالهاتف…');
   }
+  // ---------- PIN sign-in (only asked for on the phone's own Wi-Fi/Ethernet network) ----------
+  var gate = $('gate'), gateForm = $('gateForm'), gatePin = $('gatePin'), gateMsg = $('gateMsg'), gateGo = $('gateGo');
+  var locked = false;
+  function showGate() {
+    if (!locked) { locked = true; gate.className = 'gate'; setPill('wait', 'بانتظار الرمز'); setTimeout(function () { gatePin.focus(); }, 0); }
+  }
+  function login(pin) {
+    gateGo.disabled = true; gateMsg.textContent = '';
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/login', true);
+    xhr.setRequestHeader('X-Wamda-Upload', '1');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.timeout = 8000;
+    xhr.onload = function () {
+      gateGo.disabled = false;
+      if (xhr.status === 200) {
+        locked = false; gate.className = 'gate hidden'; gatePin.value = '';
+        lastSig = ''; pollStatus(); pollFiles();
+      } else if (xhr.status === 429) gateMsg.textContent = 'محاولات كثيرة. انتظر بضع دقائق ثم حاول مجددًا.';
+      else if (xhr.status === 403 && /pin/.test(xhr.responseText)) { gateMsg.textContent = 'الرمز غير صحيح.'; gatePin.select(); }
+      else gateMsg.textContent = 'أُغلق الوصول من الهاتف أو تغيّر الرمز. تحقّق من الهاتف.';
+    };
+    xhr.onerror = xhr.ontimeout = function () { gateGo.disabled = false; gateMsg.textContent = 'تعذّر الوصول إلى الهاتف.'; };
+    xhr.send(JSON.stringify({ pin: pin }));
+  }
+  gateForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var pin = gatePin.value.replace(/\D/g, '');
+    if (pin.length !== 6) { gateMsg.textContent = 'الرمز 6 أرقام.'; return; }
+    login(pin);
+  });
+  // The QR code on the phone carries the PIN in the fragment, which never reaches any server: sign in with it, then forget it.
+  function pinFromHash() {
+    var m = /(?:^#|&)pin=(\d{6})/.exec(location.hash || '');
+    if (m) { try { history.replaceState(null, '', location.pathname); } catch (e) {} login(m[1]); }
+  }
+  pinFromHash();
+  window.addEventListener('hashchange', pinFromHash);
+
   function pollStatus() {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/api/status?t=' + Date.now(), true);
     xhr.timeout = 4000;
     xhr.onload = function () {
+      if (xhr.status === 401) { fails = 0; return showGate(); }
       if (xhr.status !== 200) return fail();
       try {
         var d = JSON.parse(xhr.responseText);

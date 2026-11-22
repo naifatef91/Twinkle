@@ -32,8 +32,17 @@ sealed class PcState {
         val uploadedNames: List<String> = emptyList(),
         /** Where the USB-cable route to a computer stands, with its link once tethering is on. */
         val usb: UsbTether.Status = UsbTether.Status(),
+        /** The phone's own Wi-Fi/Ethernet network: its address there, and whether other devices may sign in. */
+        val lan: LanStatus = LanStatus(),
     ) : PcState()
     data class Failed(val message: String) : PcState()
+}
+
+/** Same-network route: [ip] is the phone's address on its router's network (null when it has none). */
+data class LanStatus(val ip: String? = null, val open: Boolean = false, val pin: String? = null) {
+    val url: String? get() = ip?.let { "http://$it:${HttpServer.PORT}" }
+    /** For the QR code: the fragment never leaves the browser, the page reads the PIN from it and signs in. */
+    val qrUrl: String? get() = url?.let { u -> pin?.let { "$u/#pin=$it" } ?: u }
 }
 
 /**
@@ -62,6 +71,7 @@ object PcSession {
     private var statsJob: Job? = null
     private var group: WifiDirectHost.GroupInfo? = null
     @Volatile private var usbStatus: UsbTether.Status = UsbTether.Status()
+    @Volatile private var lanStatus: LanStatus = LanStatus()
 
     /** Starts the group and the server. No-op when already starting or ready. */
     fun start(context: Context) {
@@ -90,9 +100,11 @@ object PcSession {
                         onUploaded = { name, _ -> _uploaded.update { it + name } },
                         phoneName = { Settings.get(app).deviceName },
                         uploadedNames = { _uploaded.value },
+                        onPinExhausted = { scope.launch { lock.withLock { if (lanStatus.open) openLanLocked() } } },
                     )
                     s.start()
                     server = s
+                    lanStatus = LanStatus(ip = HttpServer.lanAddress())
                     publish()
                     statsJob = scope.launch {
                         // Re-publish Ready whenever stats, shared list or uploads change.
@@ -106,6 +118,8 @@ object PcSession {
                             while (true) {
                                 val st = UsbTether.status(app)
                                 if (st != usbStatus) { usbStatus = st; publish() }
+                                val ip = HttpServer.lanAddress()
+                                if (ip != lanStatus.ip) { lanStatus = lanStatus.copy(ip = ip); publish() }
                                 kotlinx.coroutines.delay(2_000)
                             }
                         }
@@ -122,6 +136,27 @@ object PcSession {
     /** Replaces the set of files offered for download. Safe to call at any time. */
     fun setShared(files: List<PickedFile>) {
         _shared.value = files
+    }
+
+    /** Lets devices on the phone's own Wi-Fi/Ethernet network in with a fresh PIN, or shuts them out again. */
+    fun setLanOpen(open: Boolean) {
+        scope.launch {
+            lock.withLock {
+                val s = server ?: return@withLock
+                if (open) openLanLocked() else { s.closeLan(); lanStatus = lanStatus.copy(open = false, pin = null); publish() }
+            }
+        }
+    }
+
+    /** Replaces the PIN; browsers signed in with the old one must enter the new one. */
+    fun newLanPin() = setLanOpen(true)
+
+    private fun openLanLocked() {
+        val s = server ?: return
+        val pin = HttpServer.newPin()
+        s.openLan(pin)
+        lanStatus = lanStatus.copy(open = true, pin = pin)
+        publish()
     }
 
     /** Applies new network settings: tears down and brings the group back up. */
@@ -159,6 +194,7 @@ object PcSession {
             uploadedCount = _uploaded.value.size,
             uploadedNames = _uploaded.value,
             usb = usbStatus,
+            lan = lanStatus,
         )
     }
 
@@ -168,5 +204,6 @@ object PcSession {
         runCatching { host?.stop() }; host = null
         group = null
         usbStatus = UsbTether.Status()
+        lanStatus = LanStatus()
     }
 }

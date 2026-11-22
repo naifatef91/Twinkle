@@ -50,4 +50,14 @@
     <string name="pc_tab_wifi">عبر Wi-Fi</string>
     <string name="pc_options">خيارات الشبكة</string>
     <string name="pc_activity">النشاط</string>
+    <string name="pc_tab_lan">نفس الشبكة</string>
+    <string name="pc_lan_title">أجهزة على نفس الشبكة</string>
+    <string name="pc_lan_hint">أي كمبيوتر أو جهاز متصل بنفس الراوتر، عبر Wi-Fi أو كابل إنترنت، يفتح الرابط ويُدخل الرمز.</string>
+    <string name="pc_lan_none">الهاتف غير متصل بشبكة Wi-Fi. اتصل بشبكة الراوتر نفسها التي يتصل بها الكمبيوتر.</string>
+    <string name="pc_lan_allow">السماح لأجهزة الشبكة</string>
+    <string name="pc_lan_allow_hint">مغلق افتراضيًا. كل جهاز يحتاج إلى الرمز قبل أن يرى الملفات.</string>
+    <string name="pc_lan_pin">الرمز</string>
+    <string name="pc_lan_new_pin">رمز جديد</string>
+    <string name="pc_lan_qr_hint">امسح الرمز بكاميرا جهاز آخر ليدخل مباشرة.</string>
+    <string name="pc_lan_isolation">إن لم تفتح الصفحة فقد تكون الشبكة تمنع اتصال الأجهزة ببعضها (شبكات الضيوف والأماكن العامة). استخدم Wi-Fi المباشر أو الكابل بدلًا منها.</string>
 </resources>

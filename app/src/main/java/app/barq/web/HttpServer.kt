@@ -50,6 +50,11 @@ import java.util.Locale
  *  GET  /api/files   -> {"files":[{id,name,size,mime}]}
  *  GET  /d/<id>      -> file download (Range aware)
  *  POST /upload      -> multipart/form-data "file" parts -> {"saved":[names]}
+ *  POST /api/login   -> {"pin":"123456"} -> session cookie (same-network links only)
+ *
+ * Links: the Wi-Fi Direct group and USB tethering belong to PC mode and need no sign-in. The phone's
+ * own Wi-Fi or Ethernet network (shared with every other device on the router) is closed unless
+ * [openLan] was called, and even then every route that touches files needs the PIN first.
  */
 class HttpServer(
     private val context: Context,
@@ -58,7 +63,43 @@ class HttpServer(
     private val phoneName: () -> String = { "Wamda" },
     private val uploadedNames: () -> List<String> = { emptyList() },
     uploadStore: UploadStore? = null,
+    /** Called when too many wrong PINs were tried: the caller should pick a new PIN and call [openLan] again. */
+    private val onPinExhausted: () -> Unit = {},
+    /** Test hook: decides which kind of link a connection arrived on. */
+    private val linkOf: ((Socket) -> Link)? = null,
 ) {
+    /** What a connection arrived on. */
+    enum class Link {
+        /** Wi-Fi Direct group, USB tethering, loopback: owned by PC mode, no sign-in. */
+        TRUSTED,
+        /** The phone's regular Wi-Fi or Ethernet network: only while [openLan] is on, and only with the PIN. */
+        LAN,
+        /** Anything else (mobile data, VPN): never answered. */
+        REFUSED,
+    }
+
+    @Volatile private var lanPin: String? = null
+    private val sessions = LinkedHashSet<String>()
+    private val authLock = Any()
+    private var failuresTotal = 0
+    private val failuresByIp = HashMap<String, Pair<Int, Long>>()
+    private val random = java.security.SecureRandom()
+
+    /** Lets devices on the phone's own network in, with [pin]. Signs out every browser that used an older PIN. */
+    fun openLan(pin: String) {
+        synchronized(authLock) { lanPin = pin; sessions.clear(); failuresTotal = 0; failuresByIp.clear() }
+    }
+
+    /** Closes the phone's own network again and signs every browser on it out. */
+    fun closeLan() {
+        synchronized(authLock) { lanPin = null; sessions.clear(); failuresTotal = 0; failuresByIp.clear() }
+    }
+
+    val lanOpen: Boolean get() = lanPin != null
+
+    @Serializable
+    private data class LoginJson(val pin: String = "")
+
     private val store: UploadStore by lazy { uploadStore ?: MediaStoreUploads(context) }
 
     /** One browser upload in progress: a file sent in chunks that can be continued after the connection drops. */
@@ -146,34 +187,36 @@ class HttpServer(
     )
 
     private fun serve(socket: Socket) {
-        // Only the links PC mode owns: the Wi-Fi Direct group and USB tethering. The server is
-        // unauthenticated by design (the browser has no app), so it must not be reachable from the
-        // phone's regular Wi-Fi or mobile data.
-        if (!onAllowedInterface(socket)) {
-            Log.w(TAG, "refused ${socket.inetAddress?.hostAddress} on ${socket.localAddress?.hostAddress}: not a PC-mode link")
+        // The links PC mode owns (Wi-Fi Direct group, USB tethering) need no sign-in. The phone's own
+        // Wi-Fi/Ethernet network is shared with every device on the router, so it is closed unless the
+        // user opened it, and then needs the PIN. Mobile data and VPNs are never answered.
+        val link = classify(socket)
+        if (link == Link.REFUSED || (link == Link.LAN && lanPin == null)) {
+            Log.w(TAG, "refused ${socket.inetAddress?.hostAddress} on ${socket.localAddress?.hostAddress}: $link link not open")
             runCatching { socket.close() }
             return
         }
         if (open.incrementAndGet() > MAX_CONNECTIONS) { open.decrementAndGet(); runCatching { socket.close() }; return }
-        try { serveChecked(socket) } finally { open.decrementAndGet() }
+        try { serveChecked(socket, link == Link.LAN) } finally { open.decrementAndGet() }
     }
 
     private val open = java.util.concurrent.atomic.AtomicInteger(0)
 
-    private fun onAllowedInterface(socket: Socket): Boolean {
-        val local = socket.localAddress ?: return false
-        if (local.isLoopbackAddress) return true
-        val name = runCatching { java.net.NetworkInterface.getByInetAddress(local)?.name }.getOrNull() ?: return false
-        return interfaceAllowed(name)
+    private fun classify(socket: Socket): Link {
+        linkOf?.let { return it(socket) }
+        val local = socket.localAddress ?: return Link.REFUSED
+        if (local.isLoopbackAddress) return Link.TRUSTED
+        val name = runCatching { java.net.NetworkInterface.getByInetAddress(local)?.name }.getOrNull() ?: return Link.REFUSED
+        return linkOfInterface(name)
     }
 
-    private fun serveChecked(socket: Socket) {
+    private fun serveChecked(socket: Socket, lan: Boolean) {
         socket.soTimeout = 60_000
         socket.tcpNoDelay = true
         // A connection that has not delivered its first complete request line and headers within
         // the deadline is closed, so idle sockets cannot exhaust the connection slots.
         val firstRequest = IdleGuard.arm(socket)
-        socket.inetAddress?.hostAddress?.let { addr -> _stats.update { it.copy(lastClientAddress = addr, lastSeenMs = System.currentTimeMillis()) } }
+        val client = socket.inetAddress?.hostAddress ?: ""
         try {
             val input = BufferedInputStream(socket.getInputStream(), 64 * 1024)
             val output = BufferedOutputStream(socket.getOutputStream(), 64 * 1024)
@@ -182,7 +225,7 @@ class HttpServer(
                 val req = try { readRequest(input) } finally { firstRequest.disarm() } ?: break
                 keepAlive = !req.headers["connection"].equals("close", ignoreCase = true)
                 val resp = try {
-                    route(req)
+                    route(req, lan, client)
                 } catch (e: BadRequest) {
                     text(400, e.message ?: "Bad request")
                 } catch (e: Exception) {
@@ -243,13 +286,22 @@ class HttpServer(
         return buf.toString("ISO-8859-1")
     }
 
-    private fun route(req: Request): Response {
+    private fun route(req: Request, lan: Boolean, client: String): Response {
         val get = req.method == "GET" || req.method == "HEAD"
         val path = req.path
         // DNS rebinding: the page is only ever opened by IP literal, so a DNS name in Host means a
         // foreign origin is probing the server.
         val host = hostOf(req.headers["host"]) ?: return text(400, "Bad host")
         if (!host.matches(IP_LITERAL)) return text(400, "Bad host")
+        if (lan) {
+            // The page itself and its assets hold nothing private; everything else needs a signed-in browser.
+            val public = get && (path == "/" || path == "/index.html" || path.startsWith("/pc/"))
+            if (req.method == "POST" && path == "/api/login") return login(req, client)
+            if (lanPin == null) return text(403, "Closed")
+            if (!public && !signedIn(req)) return jsonReply(401, """{"error":"auth"}""")
+        }
+        // The page polls /api/status every 2 s: that is what "connected" on the phone means.
+        if (client.isNotEmpty() && path == "/api/status") _stats.update { it.copy(lastClientAddress = client, lastSeenMs = System.currentTimeMillis()) }
         return when {
             get && (path == "/" || path == "/index.html") -> asset("pc/index.html", "text/html; charset=utf-8")
             get && path.startsWith("/pc/") -> {
@@ -268,6 +320,46 @@ class HttpServer(
             (path == "/" || path == "/api/files" || path == "/upload" || path.startsWith("/d/")) -> text(405, "Method not allowed")
             else -> text(404, "Not found")
         }
+    }
+
+    // ---------- same-network sign-in ----------
+
+    private fun cookieOf(req: Request): String? =
+        req.headers["cookie"]?.split(';')?.map { it.trim() }?.firstOrNull { it.startsWith("$COOKIE=") }?.substringAfter('=')
+
+    private fun signedIn(req: Request): Boolean {
+        val c = cookieOf(req)?.takeIf { it.length == 64 } ?: return false
+        return synchronized(authLock) { c in sessions }
+    }
+
+    private fun login(req: Request, client: String): Response {
+        requireUploadGate(req)
+        if (req.body.remaining > 1024) throw BadRequest("Login body too large")
+        val raw = String(req.body.readBytes(), StandardCharsets.UTF_8)
+        val pin = try { wireJson.decodeFromString(LoginJson.serializer(), raw).pin } catch (e: Exception) { throw BadRequest("Bad login body") }
+        var exhausted = false
+        val reply: Response = synchronized(authLock) {
+            val expected = lanPin ?: return@synchronized text(403, "Closed")
+            val now = System.currentTimeMillis()
+            val (count, since) = failuresByIp[client]?.takeIf { now - it.second < FAIL_WINDOW_MS } ?: (0 to now)
+            if (count >= MAX_FAILS_PER_IP) return@synchronized jsonReply(429, """{"error":"wait"}""")
+            if (java.security.MessageDigest.isEqual(pin.toByteArray(), expected.toByteArray())) {
+                failuresByIp.remove(client)
+                val token = ByteArray(32).also { random.nextBytes(it) }.joinToString("") { String.format(Locale.ROOT, "%02x", it) }
+                if (sessions.size >= MAX_SESSIONS) sessions.remove(sessions.first())
+                sessions += token
+                jsonReply(200, """{"ok":true}""").also {
+                    it.headers["Set-Cookie"] = "$COOKIE=$token; Path=/; HttpOnly; SameSite=Strict; Max-Age=43200"
+                }
+            } else {
+                failuresByIp[client] = (count + 1) to since
+                if (++failuresTotal >= MAX_FAILS_TOTAL) { exhausted = true; lanPin = null; sessions.clear() }
+                jsonReply(403, """{"error":"pin"}""")
+            }
+        }
+        // Too many guesses in total: this PIN is burnt. The owner gets a fresh one (shown on the phone).
+        if (exhausted) runCatching { onPinExhausted() }
+        return reply
     }
 
     // ---------- routes ----------
@@ -697,6 +789,7 @@ class HttpServer(
 
     private fun reason(status: Int) = when (status) {
         200 -> "OK"; 204 -> "No Content"; 206 -> "Partial Content"; 400 -> "Bad Request"
+        401 -> "Unauthorized"; 403 -> "Forbidden"; 429 -> "Too Many Requests"
         404 -> "Not Found"; 405 -> "Method Not Allowed"; 409 -> "Conflict"; 416 -> "Range Not Satisfiable"
         500 -> "Internal Server Error"; else -> "OK"
     }
@@ -741,6 +834,31 @@ class HttpServer(
         private val ALLOWED_IFACES = listOf("p2p") + UsbTether.PREFIXES
         /** True for the network interfaces PC mode answers on (the Wi-Fi Direct group and USB tethering) and nothing else. */
         internal fun interfaceAllowed(name: String): Boolean = ALLOWED_IFACES.any { name.startsWith(it) }
+        /** The phone's own Wi-Fi (as a client or as its hotspot) and Ethernet: shared networks, PIN only. */
+        private val LAN_IFACES = listOf("wlan", "swlan", "eth", "ap")
+        internal fun linkOfInterface(name: String): Link = when {
+            interfaceAllowed(name) -> Link.TRUSTED
+            LAN_IFACES.any { name.startsWith(it) } -> Link.LAN
+            else -> Link.REFUSED
+        }
+        private const val COOKIE = "wamda_s"
+        private const val MAX_SESSIONS = 32
+        private const val MAX_FAILS_PER_IP = 5
+        private const val FAIL_WINDOW_MS = 5L * 60 * 1000
+        private const val MAX_FAILS_TOTAL = 20
+
+        /** A fresh six-digit PIN. */
+        // Locale.ROOT: under an Arabic locale "%06d" yields Arabic-Indic digits, which no PC keyboard types.
+        fun newPin(): String = String.format(Locale.ROOT, "%06d", java.security.SecureRandom().nextInt(1_000_000))
+
+        /** The phone's IPv4 address on its own Wi-Fi or Ethernet network, if it has one. Ethernet first. */
+        fun lanAddress(): String? = runCatching {
+            java.net.NetworkInterface.getNetworkInterfaces()?.toList().orEmpty()
+                .filter { it.isUp && !it.isLoopback && linkOfInterface(it.name) == Link.LAN }
+                .sortedBy { if (it.name.startsWith("eth")) 0 else if (it.name.startsWith("wlan")) 1 else 2 }
+                .flatMap { nif -> nif.inetAddresses.toList().filterIsInstance<java.net.Inet4Address>().filter { !it.isLoopbackAddress && !it.isLinkLocalAddress } }
+                .firstOrNull()?.hostAddress
+        }.getOrNull()
         private val ASSET_NAME =Regex("[A-Za-z0-9_-][A-Za-z0-9._-]{0,63}")
         private val IP_LITERAL = Regex("""^\d{1,3}(\.\d{1,3}){3}$|^\[[0-9A-Fa-f:.%]+]$""")
 
