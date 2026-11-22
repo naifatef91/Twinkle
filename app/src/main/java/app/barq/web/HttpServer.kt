@@ -57,7 +57,26 @@ class HttpServer(
     private val onUploaded: (name: String, size: Long) -> Unit,
     private val phoneName: () -> String = { "Wamda" },
     private val uploadedNames: () -> List<String> = { emptyList() },
+    uploadStore: UploadStore? = null,
 ) {
+    private val store: UploadStore by lazy { uploadStore ?: MediaStoreUploads(context) }
+
+    /** One browser upload in progress: a file sent in chunks that can be continued after the connection drops. */
+    private class Upload(val id: String, val key: String, val token: String, val name: String, val size: Long) {
+        @Volatile var received = 0L
+        @Volatile var touched = System.currentTimeMillis()
+    }
+
+    private val uploadsById = java.util.concurrent.ConcurrentHashMap<String, Upload>()
+
+    @Serializable
+    private data class InitJson(val name: String, val size: Long, val mime: String = "", val key: String = "")
+
+    @Serializable
+    private data class InitReply(val id: String, val offset: Long, val size: Long)
+
+    @Serializable
+    private data class OffsetReply(val offset: Long, val size: Long)
     /** [lastSeenMs] = wall-clock time of the last request; the page polls every 2 s, so < 8 s means "connected". */
     data class Stats(val bytesServed: Long = 0L, val bytesReceived: Long = 0L, val lastClientAddress: String? = null, val lastSeenMs: Long = 0L)
 
@@ -104,6 +123,9 @@ class HttpServer(
 
     @Synchronized
     fun stop() {
+        // Unfinished uploads must not stay behind as hidden files once the server is gone.
+        uploadsById.values.forEach { runCatching { store.discard(it.token) } }
+        uploadsById.clear()
         runCatching { serverSocket?.close() }
         serverSocket = null
         scope?.cancel()
@@ -238,6 +260,10 @@ class HttpServer(
             get && path == "/api/status" -> apiStatus()
             get && path.startsWith("/d/") -> download(req, path.substring(3))
             req.method == "POST" && path == "/upload" -> upload(req)
+            req.method == "POST" && path == "/upload/init" -> uploadInit(req)
+            req.method == "POST" && path.startsWith("/upload/chunk/") -> uploadChunk(req, path.removePrefix("/upload/chunk/"))
+            req.method == "POST" && path.startsWith("/upload/finish/") -> uploadFinish(req, path.removePrefix("/upload/finish/"))
+            get && path.startsWith("/upload/status/") -> uploadStatus(req, path.removePrefix("/upload/status/"))
             req.method == "OPTIONS" -> Response(204, mutableMapOf("Allow" to "GET, HEAD, POST, OPTIONS"), 0L) {}
             (path == "/" || path == "/api/files" || path == "/upload" || path.startsWith("/d/")) -> text(405, "Method not allowed")
             else -> text(404, "Not found")
@@ -356,16 +382,90 @@ class HttpServer(
         }
     }
 
-    private fun upload(req: Request): Response {
-        // CSRF: a plain HTML form from any site can POST multipart to this address without a
-        // preflight; the page's own uploader sets a custom header, which a cross-site form cannot.
+    /**
+     * CSRF: a plain HTML form from any site can POST to this address without a preflight; the page's own
+     * uploader sets a custom header, which a cross-site form cannot. Every upload route goes through this.
+     */
+    private fun requireUploadGate(req: Request) {
         if (req.headers["x-wamda-upload"] != "1") throw BadRequest("Missing upload header")
         req.headers["origin"]?.let { origin ->
             val originHost = hostOf(origin.substringAfter("://", origin))
             val reqHost = hostOf(req.headers["host"])
             if (origin != "null" && (originHost == null || originHost != reqHost)) throw BadRequest("Cross-origin upload refused")
         }
-        val ct = req.headers["content-type"] ?: throw BadRequest("Missing Content-Type")
+    }
+
+    private fun jsonReply(status: Int, json: String): Response =
+        bytesResponse(status, "application/json; charset=utf-8", json.toByteArray(StandardCharsets.UTF_8)).also { it.headers["Cache-Control"] = "no-store" }
+
+    private fun uploadFor(id: String): Upload? = uploadsById[id]?.also { it.touched = System.currentTimeMillis() }
+
+    /** Starts a chunked upload, or finds the unfinished one for the same file so the browser can continue it. */
+    private fun uploadInit(req: Request): Response {
+        requireUploadGate(req)
+        if (req.body.remaining > 8 * 1024) throw BadRequest("Init body too large")
+        val raw = ByteArrayOutputStream().also { out -> val b = ByteArray(1024); while (true) { val n = req.body.read(b); if (n < 0) break; out.write(b, 0, n) } }.toString("UTF-8")
+        val init = try { wireJson.decodeFromString(InitJson.serializer(), raw) } catch (e: Exception) { throw BadRequest("Bad init body") }
+        if (init.size < 0 || init.size > MAX_UPLOAD_BYTES) throw BadRequest("Bad size")
+        val name = sanitizeName(init.name)
+        val key = (init.key.ifBlank { "${init.name}|${init.size}" }).take(300)
+
+        // Forget uploads nobody touched for an hour so a browser that never came back leaves no hidden file.
+        val cutoff = System.currentTimeMillis() - STALE_UPLOAD_MS
+        uploadsById.values.filter { it.touched < cutoff }.forEach { uploadsById.remove(it.id); runCatching { store.discard(it.token) } }
+
+        uploadsById.values.firstOrNull { it.key == key && it.size == init.size }?.let { existing ->
+            existing.touched = System.currentTimeMillis()
+            return jsonReply(200, wireJson.encodeToString(InitReply.serializer(), InitReply(existing.id, existing.received, existing.size)))
+        }
+        if (uploadsById.size >= MAX_OPEN_UPLOADS) throw BadRequest("Too many unfinished uploads")
+        val mime = init.mime.takeIf { it.isNotBlank() && it != "application/octet-stream" } ?: mimeFor(name)
+        val up = Upload(java.util.UUID.randomUUID().toString(), key, store.create(name, mime), name, init.size)
+        uploadsById[up.id] = up
+        return jsonReply(200, wireJson.encodeToString(InitReply.serializer(), InitReply(up.id, 0L, up.size)))
+    }
+
+    /** How much of an upload the phone already holds; the browser calls this after a dropped connection. */
+    private fun uploadStatus(req: Request, id: String): Response {
+        requireUploadGate(req)
+        val up = uploadFor(id) ?: return text(404, "Unknown upload")
+        return jsonReply(200, wireJson.encodeToString(OffsetReply.serializer(), OffsetReply(up.received, up.size)))
+    }
+
+    /** Appends one chunk at [rest] = "<id>/<offset>". The offset must be exactly what the phone already has. */
+    private fun uploadChunk(req: Request, rest: String): Response {
+        requireUploadGate(req)
+        val id = rest.substringBefore('/')
+        val offset = rest.substringAfter('/', "").toLongOrNull() ?: throw BadRequest("Bad offset")
+        val up = uploadFor(id) ?: return text(404, "Unknown upload")
+        val len = req.headers["content-length"]?.toLongOrNull() ?: throw BadRequest("Missing Content-Length")
+        if (len <= 0 || len > MAX_CHUNK_BYTES || offset < 0 || offset > up.size - len) throw BadRequest("Bad chunk range")
+        synchronized(up) {
+            // A retry can arrive while the previous attempt's request is still draining; the lock orders them.
+            if (offset != up.received) return jsonReply(409, wireJson.encodeToString(OffsetReply.serializer(), OffsetReply(up.received, up.size)))
+            val written = store.writeAt(up.token, offset, req.body, len)
+            if (written != len) throw IOException("chunk cut short at $written of $len") // not committed; the browser asks for the offset and resends
+            up.received = offset + len
+            _stats.update { it.copy(bytesReceived = it.bytesReceived + len) }
+            return jsonReply(200, wireJson.encodeToString(OffsetReply.serializer(), OffsetReply(up.received, up.size)))
+        }
+    }
+
+    private fun uploadFinish(req: Request, id: String): Response {
+        requireUploadGate(req)
+        val up = uploadFor(id) ?: return text(404, "Unknown upload")
+        synchronized(up) {
+            if (up.received != up.size) return jsonReply(409, wireJson.encodeToString(OffsetReply.serializer(), OffsetReply(up.received, up.size)))
+            val finalName = store.finish(up.token, up.name)
+            uploadsById.remove(up.id)
+            onUploaded(finalName, up.size)
+            return jsonReply(200, wireJson.encodeToString(UploadJson.serializer(), UploadJson(listOf(finalName))))
+        }
+    }
+
+    private fun upload(req: Request): Response {
+        requireUploadGate(req)
+        val ct =req.headers["content-type"] ?: throw BadRequest("Missing Content-Type")
         if (!ct.startsWith("multipart/form-data", ignoreCase = true)) throw BadRequest("Expected multipart/form-data")
         val boundary = boundaryOf(ct) ?: throw BadRequest("Missing boundary")
         val saved = ArrayList<String>()
@@ -597,7 +697,7 @@ class HttpServer(
 
     private fun reason(status: Int) = when (status) {
         200 -> "OK"; 204 -> "No Content"; 206 -> "Partial Content"; 400 -> "Bad Request"
-        404 -> "Not Found"; 405 -> "Method Not Allowed"; 416 -> "Range Not Satisfiable"
+        404 -> "Not Found"; 405 -> "Method Not Allowed"; 409 -> "Conflict"; 416 -> "Range Not Satisfiable"
         500 -> "Internal Server Error"; else -> "OK"
     }
 
@@ -633,6 +733,10 @@ class HttpServer(
         const val RELATIVE_PATH = "Download/Wamda"
         private const val TAG = "WamdaHttp"
         private const val MAX_CONNECTIONS = 32
+        private const val MAX_UPLOAD_BYTES = 1L shl 40
+        private const val MAX_CHUNK_BYTES = 16L * 1024 * 1024
+        private const val MAX_OPEN_UPLOADS = 64
+        private const val STALE_UPLOAD_MS = 60L * 60 * 1000
         /** Interface name prefixes PC mode may be reached on: Wi-Fi Direct group, USB tethering. */
         private val ALLOWED_IFACES = listOf("p2p") + UsbTether.PREFIXES
         /** True for the network interfaces PC mode answers on (the Wi-Fi Direct group and USB tethering) and nothing else. */
@@ -659,7 +763,7 @@ class HttpServer(
                 "heic" -> "image/heic"
                 "mkv" -> "video/x-matroska"
                 "" -> "application/octet-stream"
-                else -> MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext) ?: "application/octet-stream"
+                else -> MimeTypeMap.getSingleton()?.getMimeTypeFromExtension(ext) ?: "application/octet-stream"
             }
         }
 

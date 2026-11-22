@@ -181,6 +181,10 @@
 
     <string name="notif_channel">Transfers</string>
     <string name="notif_running">Wamda is running</string>
+    <string name="notif_pc">PC mode is on, open the link in the computer\'s browser</string>
+    <string name="settings_battery">Keep transfers running</string>
+    <string name="settings_battery_hint">If a Xiaomi or Samsung phone stops transfers when the screen turns off, pick Wamda here and choose “Unrestricted”</string>
+    <string name="settings_battery_open">Open</string>
     <string name="discover_waiting">Waiting for the other device to approve…</string>
     <string name="discover_denied">The other device declined the connection</string>
     <string name="discover_timeout">Approval timed out (30 seconds)</string>

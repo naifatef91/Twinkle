@@ -254,6 +254,15 @@ fun SettingsScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
                             Segmented(options = listOf(4 to "4", 6 to "6", 8 to "8"), selected = s.streams) { v -> settings.update { it.copy(streams = v) } }
                         }
                         HorizontalDivider(color = c.outline)
+                        // Opens the system battery-optimisation list (no special permission needed); some makers kill
+                        // background transfers unless the app is set to "Unrestricted" there.
+                        SettingRow(stringResource(R.string.settings_battery), stringResource(R.string.settings_battery_hint)) {
+                            TextButton(onClick = {
+                                val ok = runCatching { ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }.isSuccess
+                                if (!ok) runCatching { ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_SETTINGS)) }
+                            }) { Text(stringResource(R.string.settings_battery_open), color = c.primary) }
+                        }
+                        HorizontalDivider(color = c.outline)
                         SettingRow(stringResource(R.string.settings_benchmark), stringResource(R.string.settings_benchmark_hint), onClick = { settings.update { it.copy(benchmarkPlain = !it.benchmarkPlain) } }) {
                             BarqSwitch(s.benchmarkPlain) { v -> settings.update { it.copy(benchmarkPlain = v) } }
                         }

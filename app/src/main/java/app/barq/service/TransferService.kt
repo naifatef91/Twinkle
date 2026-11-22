@@ -18,7 +18,11 @@ import app.barq.TransferState
 import app.barq.ui.MainActivity
 import app.barq.ui.formatBytes
 import app.barq.ui.formatSpeed
+import app.barq.web.PcSession
+import app.barq.web.PcState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
@@ -37,16 +41,35 @@ class TransferService : LifecycleService() {
         startInForeground()
         acquireLocks()
 
+        // The service lives as long as EITHER a phone-to-phone transfer is in progress OR PC mode is on, so
+        // leaving the app or turning the screen off keeps both alive (foreground service + CPU and Wi-Fi locks).
         lifecycleScope.launch {
-            TransferController.state.collectLatest { s ->
-                when (s) {
-                    is TransferState.Running -> notify(
-                        "${formatSpeed(s.snapshot.speedBps)}  ·  ${formatBytes(s.snapshot.bytesDone)} / ${formatBytes(s.snapshot.bytesTotal)}",
-                        s.snapshot.fraction,
+            combine(TransferController.state, PcSession.state) { t, p -> t to p }.collectLatest { (t, p) ->
+                val pcOn = p is PcState.Starting || p is PcState.Ready
+                when {
+                    t is TransferState.Running -> notify(
+                        "${formatSpeed(t.snapshot.speedBps)}  ·  ${formatBytes(t.snapshot.bytesDone)} / ${formatBytes(t.snapshot.bytesTotal)}",
+                        t.snapshot.fraction,
                     )
-                    is TransferState.Finished, is TransferState.Failed, TransferState.Idle -> { releaseLocks(); stopSelf() }
-                    else -> notify(getString(R.string.notif_running), null)
+                    t is TransferState.Preparing || t is TransferState.Listening || t is TransferState.AwaitingAccept || t is TransferState.Broadcasting ->
+                        notify(getString(R.string.notif_running), null)
+                    pcOn -> notify(getString(R.string.notif_pc), null)
+                    t is TransferState.Idle -> {
+                        // The screen starts this service just before it moves the controller out of Idle; give it a
+                        // moment (a new emission cancels this wait) instead of stopping on the very first Idle.
+                        delay(IDLE_GRACE_MS)
+                        releaseLocks(); stopSelf()
+                    }
+                    else -> { releaseLocks(); stopSelf() } // Finished or Failed with PC mode off
                 }
+            }
+        }
+        // The CPU lock is taken for an hour at a time and renewed while the service runs, so a transfer of many
+        // hours never loses it (and a forgotten service never holds it forever).
+        lifecycleScope.launch {
+            while (true) {
+                delay(WAKE_RENEW_MS)
+                runCatching { wakeLock?.acquire(WAKE_HOLD_MS) }
             }
         }
     }
@@ -88,7 +111,7 @@ class TransferService : LifecycleService() {
     private fun acquireLocks() {
         wakeLock = runCatching {
             (getSystemService(POWER_SERVICE) as PowerManager)
-                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "barq:transfer").apply { setReferenceCounted(false); acquire(60 * 60 * 1000L) }
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "barq:transfer").apply { setReferenceCounted(false); acquire(WAKE_HOLD_MS) }
         }.getOrNull()
         wifiLock = runCatching {
             (applicationContext.getSystemService(WIFI_SERVICE) as WifiManager)
@@ -129,6 +152,9 @@ class TransferService : LifecycleService() {
 
     companion object {
         private const val NOTIF_ID = 1
+        private const val IDLE_GRACE_MS = 5_000L
+        private const val WAKE_HOLD_MS = 60 * 60 * 1000L
+        private const val WAKE_RENEW_MS = 30 * 60 * 1000L
 
         fun start(context: Context) {
             ContextCompat.startForegroundService(context, Intent(context, TransferService::class.java))

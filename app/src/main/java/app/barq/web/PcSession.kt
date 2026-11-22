@@ -5,6 +5,7 @@ import android.util.Log
 import app.barq.data.PickedFile
 import app.barq.data.Settings
 import app.barq.net.WifiDirectHost
+import app.barq.service.TransferService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -65,6 +66,9 @@ object PcSession {
     /** Starts the group and the server. No-op when already starting or ready. */
     fun start(context: Context) {
         val app = context.applicationContext
+        // PC mode must outlive the screen: a foreground service keeps the process, the CPU and the Wi-Fi radio awake
+        // while the phone is locked or the app is in the background. It stops itself when PC mode ends.
+        runCatching { TransferService.start(app) }
         scope.launch {
             lock.withLock {
                 if (_state.value is PcState.Starting || _state.value is PcState.Ready) return@withLock

@@ -181,6 +181,10 @@
 
     <string name="notif_channel">عمليات النقل</string>
     <string name="notif_running">ومضة يعمل</string>
+    <string name="notif_pc">وضع الكمبيوتر يعمل، افتح الرابط من متصفح الكمبيوتر</string>
+    <string name="settings_battery">إبقاء النقل شغّالًا</string>
+    <string name="settings_battery_hint">إن أوقفت هواتف مثل Xiaomi وSamsung النقل عند إطفاء الشاشة، اختر ومضة هنا وافتح «بلا قيود»</string>
+    <string name="settings_battery_open">فتح</string>
     <string name="discover_waiting">بانتظار موافقة الجهاز الآخر…</string>
     <string name="discover_denied">رفض الجهاز الآخر الاتصال</string>
     <string name="discover_timeout">انتهت مهلة انتظار الموافقة (30 ثانية)</string>
