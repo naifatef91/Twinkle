@@ -155,7 +155,7 @@
 <div class="gate hidden" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
   <form id="gateForm" autocomplete="off">
     <h2 id="gateTitle">أدخل رمز الهاتف</h2>
-    <p>تجده على الهاتف في وضع الكمبيوتر ← تبويب «نفس الشبكة».</p>
+    <p>تجده على الهاتف في شاشة «الكمبيوتر على نفس الشبكة».</p>
     <input id="gatePin" inputmode="numeric" pattern="[0-9]*" maxlength="6" aria-label="الرمز المكوَّن من 6 أرقام" placeholder="••••••">
     <div class="msg" id="gateMsg" role="alert"></div>
     <button type="submit" class="btn mint" id="gateGo">دخول</button>
@@ -301,7 +301,7 @@
       gateGo.disabled = false;
       if (xhr.status === 200) {
         locked = false; gate.className = 'gate hidden'; gatePin.value = '';
-        lastSig = ''; pollStatus(); pollFiles();
+        lastSig = ''; pollStatus(); pollFiles(); resumeAfterLogin();
       } else if (xhr.status === 429) gateMsg.textContent = 'محاولات كثيرة. انتظر بضع دقائق ثم حاول مجددًا.';
       else if (xhr.status === 403 && /pin/.test(xhr.responseText)) { gateMsg.textContent = 'الرمز غير صحيح.'; gatePin.select(); }
       else gateMsg.textContent = 'أُغلق الوصول من الهاتف أو تغيّر الرمز. تحقّق من الهاتف.';
@@ -415,7 +415,7 @@
   }
   function overall() {
     var loaded = 0, total = 0, busy = false;
-    jobs.forEach(function (j) { if (j.state === 'up' || j.state === 'wait' || j.state === 'retry') { busy = true; loaded += j.loaded; total += j.file.size; } });
+    jobs.forEach(function (j) { if (j.state === 'up' || j.state === 'wait' || j.state === 'retry' || j.state === 'auth') { busy = true; loaded += j.loaded; total += j.file.size; } });
     if (busy) {
       if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
       topline.className = 'topline busy';
@@ -508,7 +508,23 @@
   }
 
   // Connection or server trouble: wait a little and carry on. Anything else is final.
+  // Uploads waiting for the PIN (the phone switched to a new one mid-upload). They resume after sign-in, from
+  // wherever the phone got to, because init finds the unfinished upload again.
+  var authWait = [];
+  function resumeAfterLogin() {
+    var waiting = authWait; authWait = [];
+    waiting.forEach(function (job) { if (job.state === 'auth') open(job); });
+  }
+
   function trouble(job, status, why) {
+    if (status === 401) {
+      job.state = 'auth'; job.bar.className = 'bar warn';
+      state(job, 'warn', 'بانتظار الرمز');
+      if (authWait.indexOf(job) < 0) authWait.push(job);
+      overall();
+      showGate();
+      return;
+    }
     var transient = status === 0 || status >= 500;
     if (status === 404) { job.id = null; transient = true; }   // the phone forgot this upload: start it again
     if (!transient || ++job.tries > MAX_TRIES) {
@@ -522,7 +538,7 @@
   }
 
   function resumed(job) {
-    if (job.state === 'retry') { job.state = 'up'; job.bar.className = 'bar'; state(job, 'up', 'جارٍ الرفع'); }
+    if (job.state === 'retry' || job.state === 'auth') { job.state = 'up'; job.bar.className = 'bar'; state(job, 'up', 'جارٍ الرفع'); }
     job.tries = 0;
   }
 

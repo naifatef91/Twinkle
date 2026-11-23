@@ -120,7 +120,7 @@ object PcSession {
                         onUploaded = { name, _ -> _uploaded.update { it + name } },
                         phoneName = { Settings.get(app).deviceName },
                         uploadedNames = { _uploaded.value },
-                        onPinExhausted = { scope.launch { lock.withLock { if (lanStatus.open) openLanLocked() } } },
+                        onPinExhausted = { scope.launch { lock.withLock { if (lanStatus.open) openLanLocked(keepSessions = true) } } },
                         trustedLinks = mode.trustedLinks,
                     )
                     s.start()
@@ -173,10 +173,10 @@ object PcSession {
         scope.launch { lock.withLock { if (mode == PcMode.LAN) openLanLocked() } }
     }
 
-    private fun openLanLocked() {
+    private fun openLanLocked(keepSessions: Boolean = false) {
         val s = server ?: return
         val pin = HttpServer.newPin()
-        s.openLan(pin)
+        s.openLan(pin, keepSessions)
         lanStatus = lanStatus.copy(open = true, pin = pin)
         publish()
     }

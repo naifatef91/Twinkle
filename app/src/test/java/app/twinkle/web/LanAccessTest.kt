@@ -34,8 +34,10 @@ class LanAccessTest {
 
     private class Reply(val status: Int, val headers: Map<String, String>, val body: String)
 
-    private fun raw(request: String): Reply {
+    /** [from] picks the client address (any 127.x.x.x is loopback), so tests can act as several devices. */
+    private fun raw(request: String, from: String = "127.0.0.1"): Reply {
         Socket().use { sock ->
+            sock.bind(InetSocketAddress(from, 0))
             sock.connect(InetSocketAddress("127.0.0.1", port), 3_000)
             sock.soTimeout = 10_000
             sock.getOutputStream().apply { write(request.toByteArray(Charsets.UTF_8)); flush() }
@@ -50,9 +52,9 @@ class LanAccessTest {
     private fun get(path: String, cookie: String? = null): Reply =
         raw("GET $path HTTP/1.1\r\nHost: 127.0.0.1:$port\r\n" + (cookie?.let { "Cookie: $it\r\n" } ?: "") + "Connection: close\r\n\r\n")
 
-    private fun login(pin: String, gate: Boolean = true): Reply {
+    private fun login(pin: String, gate: Boolean = true, from: String = "127.0.0.1"): Reply {
         val body = """{"pin":"$pin"}"""
-        return raw(
+        return raw(from = from, request =
             "POST /api/login HTTP/1.1\r\nHost: 127.0.0.1:$port\r\n" + (if (gate) "X-Twinkle-Upload: 1\r\n" else "") +
                 "Content-Type: application/json\r\nContent-Length: ${body.length}\r\nConnection: close\r\n\r\n$body",
         )
@@ -114,6 +116,22 @@ class LanAccessTest {
         assertEquals(HttpServer.Link.REFUSED, HttpServer.linkOfInterface("rmnet_data0"))
         assertEquals(HttpServer.Link.REFUSED, HttpServer.linkOfInterface("tun0"))
         assertTrue(HttpServer.newPin().matches(Regex("\\d{6}")))
+    }
+
+    @Test fun guessersBurnThePinButCannotSignTheOwnerOut() {
+        server.openLan("123456")
+        val owner = login("123456").headers["set-cookie"]!!.substringBefore(';')
+        // Four devices, five wrong guesses each: the twentieth burns the PIN.
+        for (d in 2..5) repeat(5) { assertEquals(403, login("00000$it", from = "127.0.0.$d").status) }
+        assertEquals(1, exhausted.get())
+        assertEquals("the owner's browser stays signed in", 200, get("/api/status", owner).status)
+        assertEquals("no sign-ins until the PIN is replaced", 429, login("123456", from = "127.0.0.9").status)
+
+        // The session replaces the burnt PIN without signing anyone out; the guessers stay rate-limited.
+        server.openLan("654321", keepSessions = true)
+        assertEquals(200, get("/api/status", owner).status)
+        assertEquals(429, login("654321", from = "127.0.0.2").status)
+        assertEquals(200, login("654321", from = "127.0.0.9").status)
     }
 
     @Test fun eachModeAnswersOnItsOwnLinkOnly() {

@@ -94,6 +94,9 @@ fun ReceiveScreen(onHome: () -> Unit, onMinimize: () -> Unit = onHome) {
         if (wifiOn && state is TransferState.Idle) {
             TransferService.start(ctx)
             TransferController.startReceiving(ctx)
+        } else if (!wifiOn && state is TransferState.Listening) {
+            // The network behind the QR code went away with Wi-Fi: drop it, show the notice, start again when Wi-Fi is on.
+            TransferController.reset()
         }
     }
     BackHandler { if (state is TransferState.Running) onMinimize() else onHome() }
