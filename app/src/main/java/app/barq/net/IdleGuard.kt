@@ -15,7 +15,7 @@ object IdleGuard {
     const val FIRST_REQUEST_MS = 10_000L
 
     private val scheduler = Executors.newSingleThreadScheduledExecutor { r ->
-        Thread(r, "wamda-idle-guard").apply { isDaemon = true }
+        Thread(r, "twinkle-idle-guard").apply { isDaemon = true }
     }
 
     class Watch internal constructor(private val task: ScheduledFuture<*>) {

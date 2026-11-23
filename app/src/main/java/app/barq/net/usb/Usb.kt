@@ -80,9 +80,9 @@ class HostPipe(
 object Aoa {
     const val VID_GOOGLE = 0x18D1
     private val ACCESSORY_PIDS = setOf(0x2D00, 0x2D01, 0x2D02, 0x2D03, 0x2D04, 0x2D05)
-    const val MANUFACTURER = "Wamda"
-    const val MODEL = "Wamda Link"
-    const val DESCRIPTION = "Wamda cable transfer"
+    const val MANUFACTURER = "Twinkle"
+    const val MODEL = "Twinkle Link"
+    const val DESCRIPTION = "Twinkle cable transfer"
     const val VERSION = "1"
     const val URI = "https://github.com/naifatef91/wamda"
     const val SERIAL = "0001"
@@ -150,7 +150,7 @@ class Mux(private val pipe: UsbPipe, private val kind: String = "usb") : Closeab
                     s.push(payload)
                 }
             } catch (e: Exception) {
-                if (!closed) android.util.Log.w("Wamda", "usb mux reader ended: ${e.message}")
+                if (!closed) android.util.Log.w("Twinkle", "usb mux reader ended: ${e.message}")
             } finally {
                 streams.values.forEach { it.eof() }
                 incoming.close()

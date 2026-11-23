@@ -73,7 +73,7 @@ class WifiDirectHost(context: Context) {
     @SuppressLint("MissingPermission")
     private suspend fun createGroup(band: Int, suffix: String, passphrase: String): Boolean = suspendCancellableCoroutine { cont ->
         val config = WifiP2pConfig.Builder()
-            .setNetworkName("DIRECT-$suffix-Wamda")
+            .setNetworkName("DIRECT-$suffix-Twinkle")
             .setPassphrase(passphrase)
             .setGroupOperatingBand(band)
             .build()

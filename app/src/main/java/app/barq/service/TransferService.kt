@@ -1,5 +1,6 @@
 package app.barq.service
 
+import androidx.core.graphics.drawable.toBitmap
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
@@ -34,7 +35,11 @@ class TransferService : LifecycleService() {
     private var wifiLock: WifiManager.WifiLock? = null
 
     /** The real artwork for the expanded notification; the status bar keeps the monochrome silhouette. */
-    private val largeIcon by lazy { android.graphics.BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_art) }
+    // The mipmap is an adaptive-icon XML on API 26+, so BitmapFactory would return null; render the drawable instead.
+    private val largeIcon by lazy {
+        val px = (64 * resources.displayMetrics.density).toInt()
+        androidx.core.content.ContextCompat.getDrawable(this, R.mipmap.ic_launcher_round)?.toBitmap(px, px)
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -81,7 +86,7 @@ class TransferService : LifecycleService() {
      * already resumes from the chunks it has.
      */
     override fun onTimeout(startId: Int, fgsType: Int) {
-        android.util.Log.w("Wamda", "foreground service type $fgsType timed out, stopping")
+        android.util.Log.w("Twinkle", "foreground service type $fgsType timed out, stopping")
         releaseLocks()
         stopSelf()
     }
@@ -102,7 +107,7 @@ class TransferService : LifecycleService() {
         try {
             startForeground(NOTIF_ID, n, both)
         } catch (e: SecurityException) {
-            android.util.Log.w("Wamda", "connectedDevice service type refused, using dataSync only", e)
+            android.util.Log.w("Twinkle", "connectedDevice service type refused, using dataSync only", e)
             startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         }
     }

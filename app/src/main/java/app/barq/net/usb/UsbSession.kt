@@ -49,7 +49,7 @@ data class UsbMsg(val type: String, val name: String = "", val token: String = "
  */
 object UsbSession {
     private const val ACTION_PERMISSION = "app.barq.USB_PERMISSION"
-    private const val TAG = "Wamda"
+    private const val TAG = "Twinkle"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _state = MutableStateFlow<UsbState>(UsbState.Idle)

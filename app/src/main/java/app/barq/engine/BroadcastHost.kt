@@ -74,7 +74,7 @@ class BroadcastHost(
             // re-wrapped by Sender afterwards, so nothing else may be buffered here.
             wireJson.decodeFromString(Hello.serializer(), FrameIO.readJson(inp, Protocol.Type.HELLO))
         } catch (e: Exception) {
-            android.util.Log.w("Wamda", "broadcast: rejected connection from ${socket.inetAddress}", e)
+            android.util.Log.w("Twinkle", "broadcast: rejected connection from ${socket.inetAddress}", e)
             runCatching { socket.close() }
             return
         } finally {
@@ -105,7 +105,7 @@ class BroadcastHost(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    android.util.Log.w("Wamda", "broadcast: session with ${hello.deviceName} failed", e)
+                    android.util.Log.w("Twinkle", "broadcast: session with ${hello.deviceName} failed", e)
                     onFailed(hello.session, e)
                 } finally {
                     peers.remove(hello.session)?.data?.close()

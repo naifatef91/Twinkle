@@ -40,7 +40,7 @@ class Cable(private val rx: Pipe.SourceChannel, private val tx: Pipe.SinkChannel
 /**
  * A ChunkSink on a temp directory that remembers progress across sessions, like ReceiveStore does.
  * Names and folders go through the same NameSanitizer the phone applies, so what lands on disk is what
- * the user would see in the Download/Wamda folder.
+ * the user would see in the Download/Twinkle folder.
  */
 class DirSink(private val dir: File) : ChunkSink {
     private class F(val raf: RandomAccessFile, val size: Long) { val done = BitSet(); @Synchronized fun mark(i: Int) = done.set(i) }

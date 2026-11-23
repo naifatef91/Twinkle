@@ -50,7 +50,7 @@ data class LanStatus(val ip: String? = null, val open: Boolean = false, val pin:
  * the browser UI over HTTP on that link. Independent from the phone-to-phone TransferController.
  */
 object PcSession {
-    private const val TAG = "WamdaPc"
+    private const val TAG = "TwinklePc"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val lock = Mutex()

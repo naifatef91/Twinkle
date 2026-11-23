@@ -21,7 +21,7 @@ class StateSweep(val files: Int, val bytes: Long)
 
 /**
  * Where incoming bytes land. Files are created as pending MediaStore entries in
- * Download/Wamda, preallocated to their final size, and written at chunk offsets
+ * Download/Twinkle, preallocated to their final size, and written at chunk offsets
  * from any thread. A small state file per unfinished file records which chunks
  * arrived, so a later session with the same (name, size, modified) resumes.
  */
@@ -179,10 +179,10 @@ class ReceiveStore(private val context: Context, private val resume: Boolean = t
         return md.digest().joinToString("") { "%02x".format(it) }
     }
 
-    /** "Download/Wamda" plus the sender's folder path, each segment sanitized (FR-11). */
+    /** "Download/Twinkle" plus the sender's folder path, each segment sanitized (FR-11). */
     private fun relativePathFor(path: String): String {
         val safe = NameSanitizer.relativePath(path)
-        return if (safe.isEmpty()) "Download/Wamda" else "Download/Wamda/$safe"
+        return if (safe.isEmpty()) "Download/Twinkle" else "Download/Twinkle/$safe"
     }
 
     /** True when a file with this name, size and quick fingerprint is already in MediaStore. */

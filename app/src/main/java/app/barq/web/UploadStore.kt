@@ -30,7 +30,7 @@ interface UploadStore {
     fun discard(token: String)
 }
 
-/** MediaStore Downloads/Wamda: pending (invisible to other apps) until [finish]. */
+/** MediaStore Downloads/Twinkle: pending (invisible to other apps) until [finish]. */
 class MediaStoreUploads(private val context: Context) : UploadStore {
     override fun create(name: String, mime: String): String {
         val values = ContentValues().apply {

@@ -24,7 +24,7 @@ class PairingTest {
     @After fun tearDown() { scope.cancel() }
 
     private val qr = QrPayload(
-        ssid = "DIRECT-X4-Wamda", pass = "p4ssw0rd-SECRET", ip = "192.168.49.1", port = 48080,
+        ssid = "DIRECT-X4-Twinkle", pass = "p4ssw0rd-SECRET", ip = "192.168.49.1", port = 48080,
         token = "493817", name = "Receiver Phone", freq = 5180, fp = "RECEIVER_FINGERPRINT_0123456789abcdefghijk", enc = true,
     )
     private val senderFp = "SENDER_FINGERPRINT_0123456789abcdefghijklmn"

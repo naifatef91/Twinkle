@@ -153,7 +153,7 @@ class Sender(
                 extraLinks.forEach { open ->
                     launch {
                         try { dataWorker(queue, stats, sentBytes, open) } catch (e: CancellationException) { throw e } catch (e: Exception) {
-                            android.util.Log.w("Wamda", "extra link worker ended: ${e.message}")
+                            android.util.Log.w("Twinkle", "extra link worker ended: ${e.message}")
                         }
                     }
                 }

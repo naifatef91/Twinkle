@@ -1,4 +1,4 @@
-# ومضة · Wamda
+# Twinkle
 
 <p dir="rtl"><b>نقل الملفات بين الهواتف بأقصى سرعة، دون إنترنت ودون إعلانات.</b><br>
 تطبيق أندرويد يربط هاتفين مباشرة عبر Wi-Fi Direct على نطاق 5GHz، يشفّر كل اتصال بـ TLS 1.3، ويستكمل النقل بعد أي انقطاع. يدعم أيضًا النقل إلى الكمبيوتر من المتصفح، والنقل بكابل USB-C، والإرسال لعدة أجهزة.</p>
@@ -31,7 +31,7 @@ Wi-Fi Direct group (5GHz)  ──QR / BLE──▶     joins the network (WifiNe
 TLS 1.3 server :48080      ◀──TLS──────      control stream: HELLO, MANIFEST
                            ──NEED──────▶     which chunks are missing (resume / dedupe)
                            ◀══N×DATA════     parallel data streams, 4 MiB frames
-MediaStore (Download/Wamda) ──ACK──────▶     DONE
+MediaStore (Download/Twinkle) ──ACK──────▶     DONE
 ```
 
 - The frame protocol is transport-agnostic: the same code runs over TLS sockets, USB accessory streams, and Wi-Fi Aware data paths. See [`app/src/main/java/app/barq/engine`](app/src/main/java/app/barq/engine).

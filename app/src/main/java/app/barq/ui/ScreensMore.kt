@@ -226,7 +226,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
                             Icon(EditIcon, contentDescription = stringResource(R.string.settings_name_edit), tint = c.onSurfaceVariant, modifier = Modifier.size(18.dp))
                         }
                         HorizontalDivider(color = c.outline)
-                        SettingRow(stringResource(R.string.settings_folder), "Download/Wamda", mono = true) {}
+                        SettingRow(stringResource(R.string.settings_folder), "Download/Twinkle", mono = true) {}
                     }
                 }
             }

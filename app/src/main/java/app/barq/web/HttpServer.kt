@@ -42,7 +42,7 @@ import java.util.Locale
 /**
  * Minimal dependency-free HTTP/1.1 server for PC mode. Serves the bundled web page,
  * streams the files the phone user chose to share (with Range support), and accepts
- * browser uploads into MediaStore Downloads (Download/Wamda). Local link only.
+ * browser uploads into MediaStore Downloads (Download/Twinkle). Local link only.
  *
  * Routes:
  *  GET  /            -> assets/pc/index.html
@@ -60,7 +60,7 @@ class HttpServer(
     private val context: Context,
     private val filesProvider: () -> List<PickedFile>,
     private val onUploaded: (name: String, size: Long) -> Unit,
-    private val phoneName: () -> String = { "Wamda" },
+    private val phoneName: () -> String = { "Twinkle" },
     private val uploadedNames: () -> List<String> = { emptyList() },
     uploadStore: UploadStore? = null,
     /** Called when too many wrong PINs were tried: the caller should pick a new PIN and call [openLan] again. */
@@ -781,7 +781,7 @@ class HttpServer(
         for ((k, v) in r.headers) sb.append(k).append(": ").append(v).append("\r\n")
         sb.append("Content-Length: ").append(r.length).append("\r\n")
         sb.append("Connection: ").append(if (keepAlive) "keep-alive" else "close").append("\r\n")
-        sb.append("Server: Wamda\r\nX-Content-Type-Options: nosniff\r\n")
+        sb.append("Server: Twinkle\r\nX-Content-Type-Options: nosniff\r\n")
         sb.append("X-Frame-Options: DENY\r\nContent-Security-Policy: frame-ancestors 'none'\r\nReferrer-Policy: no-referrer\r\n\r\n")
         out.write(sb.toString().toByteArray(StandardCharsets.ISO_8859_1))
         if (!headOnly && r.status != 204 && r.status != 304) r.write(out)
@@ -823,8 +823,8 @@ class HttpServer(
 
     companion object {
         const val PORT = 8080
-        const val RELATIVE_PATH = "Download/Wamda"
-        private const val TAG = "WamdaHttp"
+        const val RELATIVE_PATH = "Download/Twinkle"
+        private const val TAG = "TwinkleHttp"
         private const val MAX_CONNECTIONS = 32
         private const val MAX_UPLOAD_BYTES = 1L shl 40
         private const val MAX_CHUNK_BYTES = 16L * 1024 * 1024

@@ -43,7 +43,7 @@ import kotlin.coroutines.resumeWithException
 /**
  * Nearby discovery over Bluetooth LE (spec FR-01), in two steps so nothing sensitive is ever broadcast.
  *
- * 1. The receiver advertises only the Wamda service UUID, its display name and one capability byte.
+ * 1. The receiver advertises only the Twinkle service UUID, its display name and one capability byte.
  * 2. When the sender's user taps a device, the sender connects over GATT and writes a request (its
  *    name, its certificate fingerprint and a one-time key). The receiver's user sees "X wants to
  *    connect" (or it is approved automatically for a trusted device). Only after approval does the
@@ -243,7 +243,7 @@ class BleScanner(private val context: Context) {
     private fun handle(r: ScanResult) {
         val nameBytes = r.scanRecord?.getServiceData(BleIds.NAME_KEY)
         val name = nameBytes?.let { String(it, Charsets.UTF_8) }?.takeIf { it.isNotBlank() }
-            ?: found[r.device.address]?.name ?: "Wamda"
+            ?: found[r.device.address]?.name ?: "Twinkle"
         val caps = r.scanRecord?.getServiceData(BleIds.CAPS_KEY)?.firstOrNull()?.toInt() ?: 0
         found[r.device.address] = NearbyDevice(r.device.address, name, r.rssi, System.currentTimeMillis(), caps)
         publish()
@@ -255,7 +255,7 @@ class BleScanner(private val context: Context) {
 
     /**
      * Asks the device at [address] to connect and returns the pairing payload once its user approves.
-     * Fails with [PairingDeclined], [PairingTimeout] or an [IOException] (connection lost, not a Wamda device).
+     * Fails with [PairingDeclined], [PairingTimeout] or an [IOException] (connection lost, not a Twinkle device).
      * [onWaiting] fires when the request reached the other phone and we are waiting for its user.
      */
     suspend fun fetchPayload(address: String, myName: String, myFingerprint: String, onWaiting: () -> Unit = {}): QrPayload {
@@ -285,7 +285,7 @@ class BleScanner(private val context: Context) {
         }
         fun readReply(g: BluetoothGatt) {
             val ch = g.getService(BleIds.SERVICE)?.getCharacteristic(BleIds.REPLY)
-            if (ch == null) finish(Result.failure(IOException("not a Wamda device"))) else g.readCharacteristic(ch)
+            if (ch == null) finish(Result.failure(IOException("not a Twinkle device"))) else g.readCharacteristic(ch)
         }
         fun onReply(g: BluetoothGatt, bytes: ByteArray) {
             when (val r = PairingWire.openReply(bytes, eph, fp)) {
@@ -313,7 +313,7 @@ class BleScanner(private val context: Context) {
             override fun onMtuChanged(g: BluetoothGatt, mtu: Int, status: Int) { g.discoverServices() }
             override fun onServicesDiscovered(g: BluetoothGatt, status: Int) {
                 val ch = g.getService(BleIds.SERVICE)?.getCharacteristic(BleIds.REQUEST)
-                if (ch == null) { finish(Result.failure(IOException("not a Wamda device"))); return }
+                if (ch == null) { finish(Result.failure(IOException("not a Twinkle device"))); return }
                 ch.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
                 val started = if (Build.VERSION.SDK_INT >= 33) {
                     g.writeCharacteristic(ch, request, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == android.bluetooth.BluetoothStatusCodes.SUCCESS

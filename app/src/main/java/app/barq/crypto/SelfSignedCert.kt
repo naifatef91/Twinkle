@@ -23,7 +23,7 @@ object SelfSignedCert {
     class Result(val keyPair: KeyPair, val certificate: X509Certificate)
 
     fun generate(
-        commonName: String = "Wamda",
+        commonName: String = "Twinkle",
         now: Long = System.currentTimeMillis(),
         validDays: Long = 365,
         random: SecureRandom = SecureRandom(),

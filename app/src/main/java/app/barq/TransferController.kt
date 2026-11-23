@@ -827,7 +827,7 @@ object TransferController {
 
     private fun emptySnapshot() = Snapshot(0, 0, 0.0, 0.0, 0, 0, 0, emptyList())
 
-    private const val TAG = "Wamda"
+    private const val TAG = "Twinkle"
 
     /** Human-readable failure: exception type plus message, plus the root cause when it differs. */
     private fun describe(e: Throwable): String {

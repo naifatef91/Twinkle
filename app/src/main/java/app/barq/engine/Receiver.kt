@@ -72,7 +72,7 @@ class Receiver(
                         try {
                             (socket as? javax.net.ssl.SSLSocket)?.startHandshake()
                         } catch (e: Exception) {
-                            android.util.Log.e("Wamda", "TLS handshake with ${socket.inetAddress} failed", e)
+                            android.util.Log.e("Twinkle", "TLS handshake with ${socket.inetAddress} failed", e)
                             runCatching { socket.close() }
                             return@launch
                         }
@@ -120,7 +120,7 @@ class Receiver(
         } catch (e: TokenAbuse) {
             throw e
         } catch (e: Exception) {
-            android.util.Log.w("Wamda", "receiver ${link.kind} link from ${link.remote} failed (control=$isControl)", e)
+            android.util.Log.w("Twinkle", "receiver ${link.kind} link from ${link.remote} failed (control=$isControl)", e)
             if (isControl && sessionActive.get()) dropSession(e)
             // A failing data stream is noticed by the control handler when the sender tears down.
         } finally {

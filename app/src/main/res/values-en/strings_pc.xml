@@ -12,7 +12,7 @@
     <string name="pc_waiting">Waiting for the computer…</string>
     <string name="pc_waiting_hint">Join the network below on the computer, then open the link in a browser</string>
     <string name="pc_received_title">Received from the computer: %1$d files</string>
-    <string name="pc_received_hint">Saved in Download/Wamda</string>
+    <string name="pc_received_hint">Saved in Download/Twinkle</string>
     <string name="pc_usb_title">Over a USB-C cable</string>
     <string name="pc_usb_open_settings">Open tethering settings</string>
     <string name="pc_use_5ghz">Use 5GHz</string>

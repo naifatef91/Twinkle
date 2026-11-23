@@ -13,7 +13,7 @@
     <string name="pc_waiting">في انتظار اتصال الكمبيوتر…</string>
     <string name="pc_waiting_hint">وصّل الكمبيوتر بالشبكة أدناه ثم افتح الرابط في المتصفح</string>
     <string name="pc_received_title">وصل من الكمبيوتر: %1$d ملف</string>
-    <string name="pc_received_hint">محفوظة في Download/Wamda</string>
+    <string name="pc_received_hint">محفوظة في Download/Twinkle</string>
     <string name="pc_usb_title">عبر كابل USB-C</string>
     <string name="pc_usb_open_settings">فتح إعدادات الربط</string>
     <string name="pc_use_5ghz">استخدام 5GHz</string>

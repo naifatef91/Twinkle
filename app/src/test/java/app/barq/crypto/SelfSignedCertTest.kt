@@ -21,7 +21,7 @@ class SelfSignedCertTest {
         val r = SelfSignedCert.generate()
         val cert = r.certificate
         cert.verify(cert.publicKey) // signature checks out against its own key
-        assertEquals("CN=Wamda", cert.subjectX500Principal.name)
+        assertEquals("CN=Twinkle", cert.subjectX500Principal.name)
         assertEquals(cert.subjectX500Principal, cert.issuerX500Principal)
         assertEquals("SHA256withECDSA", cert.sigAlgName)
         assertEquals(3, cert.version)
