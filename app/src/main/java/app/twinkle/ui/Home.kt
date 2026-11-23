@@ -1,0 +1,216 @@
+package app.twinkle.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.twinkle.Direction
+import app.twinkle.R
+import app.twinkle.TransferController
+import app.twinkle.TransferState
+import app.twinkle.data.HistoryStore
+import app.twinkle.FeatureFlags
+import app.twinkle.data.Settings
+import app.twinkle.web.PcMode
+import app.twinkle.ui.theme.extras
+
+@Composable
+fun HomeScreen(
+    onSend: () -> Unit, onReceive: () -> Unit, onHistory: () -> Unit, onSettings: () -> Unit,
+    onOpenTransfer: () -> Unit = {}, onPc: (PcMode) -> Unit = {}, onCable: () -> Unit = {},
+) {
+    val cableEnabled = FeatureFlags.phoneCable(Settings.get(LocalContext.current).state.collectAsStateWithLifecycle().value)
+    val ctx = LocalContext.current
+    val c = MaterialTheme.colorScheme
+    val x = MaterialTheme.extras
+    val records by HistoryStore.get(ctx).records.collectAsStateWithLifecycle()
+    val prefs by Settings.get(ctx).state.collectAsStateWithLifecycle()
+    val state by TransferController.state.collectAsStateWithLifecycle()
+
+    Column(
+        Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp).padding(top = 8.dp, bottom = 28.dp),
+    ) {
+        // Header: settings at the start edge, app name in the middle, avatar at the end.
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onSettings, modifier = Modifier.size(44.dp)) {
+                Icon(TwinkleIcons.Settings, contentDescription = stringResource(R.string.settings_title), tint = c.onSurfaceVariant, modifier = Modifier.size(22.dp))
+            }
+            Text(
+                stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f), maxLines = 1,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
+            Box(
+                Modifier.size(40.dp).clip(CircleShape).background(c.primaryContainer).border(1.dp, c.outline, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(prefs.deviceName.trim().take(1).uppercase().ifBlank { "?" }, style = MaterialTheme.typography.titleMedium, color = c.onPrimaryContainer)
+            }
+        }
+
+        Spacer(Modifier.height(14.dp))
+        Text(stringResource(R.string.home_hello, prefs.deviceName), style = MaterialTheme.typography.bodyMedium, color = c.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.height(4.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(R.string.home_headline), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
+            TwinkleChip(stringResource(R.string.home_secure), ChipTone.Ok, leading = TwinkleIcons.Check, modifier = Modifier.padding(bottom = 6.dp))
+        }
+
+        val running = state as? TransferState.Running
+        if (running != null) {
+            Spacer(Modifier.height(14.dp))
+            LiveTransferBar(running, onOpenTransfer)
+        }
+
+        // Every way to connect, on one page: phone to phone first, then the three routes to a computer.
+        Spacer(Modifier.height(22.dp))
+        SectionLabel(stringResource(R.string.home_phones))
+        Spacer(Modifier.height(10.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ActionCard(
+                title = stringResource(R.string.home_send), hint = stringResource(R.string.home_send_hint2),
+                icon = TwinkleIcons.ArrowUpRight, bg = c.primary, fg = c.onPrimary, onClick = onSend, modifier = Modifier.weight(1f),
+            )
+            ActionCard(
+                title = stringResource(R.string.home_receive), hint = stringResource(R.string.home_receive_hint2),
+                icon = TwinkleIcons.ArrowDownLeft, bg = c.surface, fg = c.onSurface, onClick = onReceive, modifier = Modifier.weight(1f), outlined = true,
+            )
+        }
+        if (cableEnabled) {
+            Spacer(Modifier.height(10.dp))
+            OptionRow(stringResource(R.string.home_cable), stringResource(R.string.home_cable_hint), TwinkleIcons.Usb, onCable)
+        }
+
+        Spacer(Modifier.height(22.dp))
+        SectionLabel(stringResource(R.string.home_pc_section))
+        Spacer(Modifier.height(10.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            OptionRow(stringResource(R.string.pc_tab_wifi), stringResource(R.string.home_pc_wifi_hint), TwinkleIcons.Wifi) { onPc(PcMode.WIFI) }
+            OptionRow(stringResource(R.string.pc_tab_lan), stringResource(R.string.home_pc_lan_hint), TwinkleIcons.Monitor) { onPc(PcMode.LAN) }
+            OptionRow(stringResource(R.string.pc_usb_title), stringResource(R.string.home_pc_usb_hint), TwinkleIcons.Usb) { onPc(PcMode.USB) }
+        }
+
+        Spacer(Modifier.height(26.dp))
+        SectionLabel(stringResource(R.string.home_activity))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.home_transfers), style = MaterialTheme.typography.titleLarge)
+            if (records.isNotEmpty()) {
+                TextButton(onClick = onHistory) { Text(stringResource(R.string.home_view_all), style = MaterialTheme.typography.labelMedium, color = c.primary) }
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        if (records.isEmpty()) {
+            TwinkleCard(Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.home_recent_empty), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant, modifier = Modifier.padding(14.dp))
+            }
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { records.take(3).forEach { HistoryRow(it) } }
+        }
+    }
+}
+
+/** One connection option: icon, name, one line on when to use it, and a chevron. */
+@Composable
+private fun OptionRow(title: String, hint: String, icon: ImageVector, onClick: () -> Unit) {
+    val c = MaterialTheme.colorScheme
+    TwinkleCard(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).clickable(role = Role.Button, onClick = onClick)) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            IconBadge(icon, c.primaryContainer, c.primary)
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(hint, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+            Icon(TwinkleIcons.Next, contentDescription = null, tint = c.onSurfaceVariant, modifier = Modifier.size(18.dp))
+        }
+    }
+}
+
+@Composable
+private fun ActionCard(
+    title: String, hint: String, icon: ImageVector, bg: Color, fg: Color, onClick: () -> Unit,
+    modifier: Modifier = Modifier, outlined: Boolean = false,
+) {
+    val c = MaterialTheme.colorScheme
+    Column(
+        modifier.height(118.dp).clip(RoundedCornerShape(20.dp)).background(bg)
+            .then(if (outlined) Modifier.border(1.dp, c.outline, RoundedCornerShape(20.dp)) else Modifier)
+            .clickable(role = Role.Button, onClick = onClick).padding(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Box(
+            Modifier.size(36.dp).clip(RoundedCornerShape(11.dp)).background(fg.copy(alpha = if (outlined) 0.08f else 0.18f)),
+            contentAlignment = Alignment.Center,
+        ) { Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(20.dp)) }
+        Column {
+            Text(title, style = MaterialTheme.typography.titleMedium, color = fg, fontWeight = FontWeight.SemiBold)
+            Text(hint, style = MaterialTheme.typography.bodySmall, color = fg.copy(alpha = 0.9f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** Compact strip under the header while a transfer runs: who, how much, how long, how fast. */
+@Composable
+private fun LiveTransferBar(s: TransferState.Running, onOpen: () -> Unit) {
+    val c = MaterialTheme.colorScheme
+    val snap = s.snapshot
+    val send = s.direction == Direction.SEND
+    TwinkleCard(Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = stringResource(R.string.live_open), onClick = onOpen)) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IconBadge(if (send) TwinkleIcons.ArrowUp else TwinkleIcons.ArrowDown, c.primaryContainer, c.primary, size = 36)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        stringResource(if (send) R.string.live_sending_to else R.string.live_receiving_from, s.peer),
+                        style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        "${formatBytes(snap.bytesDone)} / ${formatBytes(snap.bytesTotal)} · ${stringResource(R.string.live_remaining, formatDuration(snap.etaSec))}",
+                        style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(formatSpeed(snap.speedBps), style = MaterialTheme.typography.titleLarge, color = c.primary, maxLines = 1)
+                    Text(stringResource(R.string.live_speed), style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
+                }
+            }
+            ThinProgress(snap.fraction)
+        }
+    }
+}

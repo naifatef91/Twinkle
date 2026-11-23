@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="ic_launcher_background">#1E1B4B</color>
+    <!-- Window behind the app while it starts: the theme background, so there is no grey flash. -->
+    <color name="window_background">#F4F3FB</color>
 </resources>

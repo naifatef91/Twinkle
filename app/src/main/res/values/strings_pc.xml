@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pc_title">وضع الكمبيوتر</string>
-    <string name="pc_subtitle">انقل الملفات من متصفح الكمبيوتر دون تثبيت أي برنامج</string>
     <string name="pc_starting">جارٍ إنشاء الشبكة وتشغيل الخادم…</string>
     <string name="pc_failed">تعذّر تشغيل وضع الكمبيوتر: %1$s</string>
     <string name="pc_retry">إعادة المحاولة</string>
@@ -13,7 +11,7 @@
     <string name="pc_waiting">في انتظار اتصال الكمبيوتر…</string>
     <string name="pc_waiting_hint">وصّل الكمبيوتر بالشبكة أدناه ثم افتح الرابط في المتصفح</string>
     <string name="pc_received_title">وصل من الكمبيوتر: %1$d ملف</string>
-    <string name="pc_received_hint">محفوظة في Download/Wamda</string>
+    <string name="pc_received_hint">محفوظة في Download/Twinkle</string>
     <string name="pc_usb_title">عبر كابل USB-C</string>
     <string name="pc_usb_open_settings">فتح إعدادات الربط</string>
     <string name="pc_use_5ghz">استخدام 5GHz</string>
@@ -50,4 +48,30 @@
     <string name="pc_tab_wifi">عبر Wi-Fi</string>
     <string name="pc_options">خيارات الشبكة</string>
     <string name="pc_activity">النشاط</string>
+    <string name="pc_tab_lan">نفس الشبكة</string>
+    <string name="pc_lan_none">الهاتف غير متصل بشبكة Wi-Fi. اتصل بشبكة الراوتر نفسها التي يتصل بها الكمبيوتر.</string>
+    <string name="pc_lan_pin">الرمز</string>
+    <string name="pc_lan_new_pin">رمز جديد</string>
+    <string name="pc_lan_qr_hint">امسح الرمز بكاميرا جهاز آخر ليدخل مباشرة.</string>
+    <string name="pc_lan_isolation">إن لم تفتح الصفحة فقد تكون الشبكة تمنع اتصال الأجهزة ببعضها (شبكات الضيوف والأماكن العامة). استخدم Wi-Fi المباشر أو الكابل بدلًا منها.</string>
+    <string name="pc_title_wifi">الكمبيوتر عبر Wi-Fi</string>
+    <string name="pc_title_lan">الكمبيوتر على نفس الشبكة</string>
+    <string name="pc_title_usb">الكمبيوتر عبر كابل USB-C</string>
+    <string name="pc_starting_server">جارٍ تشغيل الخادم…</string>
+    <string name="pc_open_browser">افتح في المتصفح</string>
+    <string name="pc_address">العنوان</string>
+    <string name="pc_step_join">اتصل بهذه الشبكة</string>
+    <string name="pc_step_open">افتح العنوان في المتصفح</string>
+    <string name="pc_qr_hint">أو امسح الرمز بالكاميرا</string>
+    <string name="pc_wait_short">بانتظار الكمبيوتر</string>
+    <string name="pc_stat_sent">أُرسل</string>
+    <string name="pc_stat_received">استُلم</string>
+    <string name="pc_stop_short">إيقاف</string>
+    <string name="pc_done">تم</string>
+    <string name="pc_step_pin">أدخل الرمز</string>
+    <string name="pc_lan_qr_hint2">أو امسح الرمز بالكاميرا للدخول مباشرة</string>
+    <string name="pc_usb_s1">وصّل الكابل بالكمبيوتر</string>
+    <string name="pc_usb_s2">اختر «نقل الملفات» من إشعار USB</string>
+    <string name="pc_usb_s3">فعّل «الربط عبر USB»</string>
+    <string name="pc_wifi_off_body">يُنشئ الهاتف شبكة Wi-Fi يتصل بها الكمبيوتر، ولا يحتاج ذلك إلى إنترنت.</string>
 </resources>

@@ -1,11 +1,11 @@
-# --- kotlinx.serialization (wire messages in app.barq.engine, web, data) ---
+# --- kotlinx.serialization (wire messages in app.twinkle.engine, web, data) ---
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.**
 -keepclassmembers class kotlinx.serialization.json.** { *** Companion; }
 -keepclasseswithmembers class kotlinx.serialization.json.** { kotlinx.serialization.KSerializer serializer(...); }
--keep,includedescriptorclasses class app.barq.**$$serializer { *; }
--keepclassmembers class app.barq.** { *** Companion; }
--keepclasseswithmembers class app.barq.** { kotlinx.serialization.KSerializer serializer(...); }
+-keep,includedescriptorclasses class app.twinkle.**$$serializer { *; }
+-keepclassmembers class app.twinkle.** { *** Companion; }
+-keepclasseswithmembers class app.twinkle.** { kotlinx.serialization.KSerializer serializer(...); }
 
 
 # --- ZXing embedded scanner reflects on its capture activity ---

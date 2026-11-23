@@ -4,13 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>ومضة</title>
-<link rel="icon" type="image/png" href="/pc/logo.png">
+<meta name="theme-color" content="#1E1B4B">
+<title>Twinkle</title>
+<link rel="icon" type="image/svg+xml" href="/pc/logo.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/pc/favicon-32.png">
 <style>
   :root {
-    --bg: #0B1419; --card: #131E25; --line: #223139; --line-2: #2C3D47;
-    --mint: #5FE3C2; --on-mint: #052A23; --mint-soft: rgba(95,227,194,.10);
-    --ink: #E8F0F0; --muted: #93A4A8; --ok: #6FCF9B; --warn: #F0B260; --err: #F2A9A3;
+    /* Twinkle palette: night indigo, yellow star accent (the --mint names are kept as the accent slot) */
+    --bg: #0B0A1F; --card: #16143A; --line: #2B2860; --line-2: #3A3775;
+    --mint: #FFD23F; --on-mint: #1E1B4B; --mint-soft: rgba(255,210,63,.12);
+    --ink: #F4F3FB; --muted: #C9C7E8; --ok: #6FCF9B; --warn: #F0B260; --err: #F2A9A3;
     --r-card: 20px; --r-btn: 14px;
   }
   * { box-sizing: border-box; }
@@ -26,7 +29,7 @@
   .sw input:focus-visible { outline: none; }
 
   /* thin top line: connection colour + overall upload progress */
-  .topline { position: fixed; top: 0; right: 0; left: 0; height: 3px; background: rgba(95,227,194,.16); z-index: 10; }
+  .topline { position: fixed; top: 0; right: 0; left: 0; height: 3px; background: rgba(255,210,63,.16); z-index: 10; }
   .topline > i { position: absolute; top: 0; right: 0; bottom: 0; width: 0; background: var(--mint); transition: width .2s, opacity .4s; opacity: 0; }
   .topline.busy > i { opacity: 1; }
   body.s-warn .topline { background: rgba(240,178,96,.25); }
@@ -35,8 +38,8 @@
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
   header { padding: 22px 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .brand { display: flex; align-items: center; gap: 14px; min-height: 48px; }
-  .mark { width: 46px; height: 46px; border-radius: 14px; overflow: hidden; background: #07111F; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; box-shadow: 0 6px 18px rgba(95,227,194,.22); }
-  .mark img { width: 46px; height: 46px; display: block; object-fit: cover; }
+  .mark { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .mark img { width: 46px; height: 46px; display: block; }
   .brand h1 { margin: 0; font-size: 24px; font-weight: 700; line-height: 1.2; }
   .brand p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
   .side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -71,9 +74,9 @@
     border-radius: var(--r-btn); border: 1px solid var(--line-2); background: transparent; color: var(--ink);
     font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; transition: background .15s, border-color .15s;
   }
-  .btn:hover { background: rgba(255,255,255,.04); border-color: #3A4D58; }
+  .btn:hover { background: rgba(255,255,255,.04); border-color: #4A4690; }
   .btn.mint { background: var(--mint); border-color: var(--mint); color: var(--on-mint); }
-  .btn.mint:hover { background: #7BEBD0; }
+  .btn.mint:hover { background: #FFDD6B; }
   .btn.sm { min-height: 40px; padding: 6px 14px; font-size: 13px; }
   .btn:disabled, .btn[aria-disabled="true"] { opacity: .45; cursor: default; pointer-events: none; }
   .btn svg { width: 16px; height: 16px; }
@@ -103,7 +106,7 @@
     border: 2px dashed var(--line-2); border-radius: 16px; padding: 30px 18px; text-align: center; color: var(--muted);
     cursor: pointer; transition: background .15s, border-color .15s; display: flex; flex-direction: column; align-items: center; gap: 10px;
   }
-  .drop:hover { border-color: #3A4D58; }
+  .drop:hover { border-color: #4A4690; }
   .drop.over { border-color: var(--mint); background: var(--mint-soft); color: var(--ink); }
   .drop .big { width: 56px; height: 56px; border-radius: 16px; background: var(--mint-soft); color: var(--mint); display: flex; align-items: center; justify-content: center; }
   .drop .big svg { width: 28px; height: 28px; }
@@ -126,7 +129,7 @@
   .chip.err { background: rgba(242,169,163,.14); color: var(--err); }
   .retry { flex: 0 0 auto; border: 1px solid var(--line-2); background: transparent; color: var(--ink); border-radius: 999px; padding: 2px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
   .retry:hover { background: rgba(255,255,255,.05); }
-  .bar { width: 100%; height: 6px; border-radius: 3px; background: #1C2A32; overflow: hidden; }
+  .bar { width: 100%; height: 6px; border-radius: 3px; background: #221F50; overflow: hidden; }
   .bar > i { display: block; height: 100%; width: 0; max-width: 100%; background: var(--mint); transition: width .15s; }
   .bar.ok > i { background: var(--ok); }
   .bar.warn > i { background: var(--warn); }
@@ -134,20 +137,39 @@
 
   footer { grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 12.5px; line-height: 1.9; padding-top: 4px; }
   footer code { font-family: Consolas, Menlo, monospace; font-size: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; direction: ltr; unicode-bidi: isolate; color: var(--ink); }
+  /* PIN sign-in for devices on the phone's own network */
+  .gate { position: fixed; inset: 0; z-index: 20; background: rgba(11,20,25,.94); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .gate.hidden { display: none; }
+  .gate form { width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-card); padding: 24px; display: grid; gap: 14px; text-align: center; }
+  .gate h2 { margin: 0; font-size: 20px; }
+  .gate p { margin: 0; color: var(--muted); font-size: 13px; }
+  .gate input { width: 100%; min-height: 56px; border-radius: var(--r-btn); border: 1px solid var(--line-2); background: var(--bg); color: var(--ink); font-size: 28px; letter-spacing: .4em; text-align: center; direction: ltr; font-family: Consolas, Menlo, monospace; }
+  .gate input:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+  .gate .msg { min-height: 20px; color: var(--err); font-size: 13px; }
   .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
 </head>
 <body>
 <div class="topline" id="topline" aria-hidden="true"><i id="topfill"></i></div>
 
+<div class="gate hidden" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <form id="gateForm" autocomplete="off">
+    <h2 id="gateTitle">أدخل رمز الهاتف</h2>
+    <p>تجده على الهاتف في وضع الكمبيوتر ← تبويب «نفس الشبكة».</p>
+    <input id="gatePin" inputmode="numeric" pattern="[0-9]*" maxlength="6" aria-label="الرمز المكوَّن من 6 أرقام" placeholder="••••••">
+    <div class="msg" id="gateMsg" role="alert"></div>
+    <button type="submit" class="btn mint" id="gateGo">دخول</button>
+  </form>
+</div>
+
 <div class="wrap">
 <header>
   <div class="brand">
     <div class="mark" aria-hidden="true">
-      <img src="/pc/logo.png" alt="" width="46" height="46">
+      <img src="/pc/logo.svg" alt="" width="46" height="46">
     </div>
     <div>
-      <h1>ومضة</h1>
+      <h1>Twinkle</h1>
       <p>نقل الملفات بين الهاتف والكمبيوتر</p>
     </div>
   </div>
@@ -193,7 +215,7 @@
 
   <footer>
     الاتصال محلي بين الجهازين فقط ولا يمرّ عبر الإنترنت.<br>
-    الملفات المُرسلة تُحفظ على الهاتف في مجلد <code>Download/Wamda</code>.
+    الملفات المُرسلة تُحفظ على الهاتف في مجلد <code>Download/Twinkle</code>.
   </footer>
 </main>
 </div>
@@ -254,6 +276,7 @@
     if (pillText.textContent !== text) pillText.textContent = text;
   }
   function updatePill() {
+    if (locked) return;
     var fresh = lastOk && (Date.now() - lastOk < 8000);
     if (fails >= 5) setPill('err', 'انقطع الاتصال بالهاتف');
     else if (fails >= 2) setPill('warn', 'جارٍ إعادة الاتصال…');
@@ -261,11 +284,51 @@
     else if (lastOk) setPill('warn', 'جارٍ إعادة الاتصال…');
     else setPill('wait', 'جارٍ الاتصال بالهاتف…');
   }
+  // ---------- PIN sign-in (only asked for on the phone's own Wi-Fi/Ethernet network) ----------
+  var gate = $('gate'), gateForm = $('gateForm'), gatePin = $('gatePin'), gateMsg = $('gateMsg'), gateGo = $('gateGo');
+  var locked = false;
+  function showGate() {
+    if (!locked) { locked = true; gate.className = 'gate'; setPill('wait', 'بانتظار الرمز'); setTimeout(function () { gatePin.focus(); }, 0); }
+  }
+  function login(pin) {
+    gateGo.disabled = true; gateMsg.textContent = '';
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/login', true);
+    xhr.setRequestHeader('X-Twinkle-Upload', '1');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.timeout = 8000;
+    xhr.onload = function () {
+      gateGo.disabled = false;
+      if (xhr.status === 200) {
+        locked = false; gate.className = 'gate hidden'; gatePin.value = '';
+        lastSig = ''; pollStatus(); pollFiles();
+      } else if (xhr.status === 429) gateMsg.textContent = 'محاولات كثيرة. انتظر بضع دقائق ثم حاول مجددًا.';
+      else if (xhr.status === 403 && /pin/.test(xhr.responseText)) { gateMsg.textContent = 'الرمز غير صحيح.'; gatePin.select(); }
+      else gateMsg.textContent = 'أُغلق الوصول من الهاتف أو تغيّر الرمز. تحقّق من الهاتف.';
+    };
+    xhr.onerror = xhr.ontimeout = function () { gateGo.disabled = false; gateMsg.textContent = 'تعذّر الوصول إلى الهاتف.'; };
+    xhr.send(JSON.stringify({ pin: pin }));
+  }
+  gateForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var pin = gatePin.value.replace(/\D/g, '');
+    if (pin.length !== 6) { gateMsg.textContent = 'الرمز 6 أرقام.'; return; }
+    login(pin);
+  });
+  // The QR code on the phone carries the PIN in the fragment, which never reaches any server: sign in with it, then forget it.
+  function pinFromHash() {
+    var m = /(?:^#|&)pin=(\d{6})/.exec(location.hash || '');
+    if (m) { try { history.replaceState(null, '', location.pathname); } catch (e) {} login(m[1]); }
+  }
+  pinFromHash();
+  window.addEventListener('hashchange', pinFromHash);
+
   function pollStatus() {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/api/status?t=' + Date.now(), true);
     xhr.timeout = 4000;
     xhr.onload = function () {
+      if (xhr.status === 401) { fails = 0; return showGate(); }
       if (xhr.status !== 200) return fail();
       try {
         var d = JSON.parse(xhr.responseText);
@@ -285,9 +348,9 @@
 
   // ---------- files shared by the phone ----------
   var known = {}, lastSig = '', seen = {}, first = true;
-  try { autoCb.checked = localStorage.getItem('wamda.auto') === '1'; } catch (e) {}
+  try { autoCb.checked = localStorage.getItem('twinkle.auto') === '1'; } catch (e) {}
   autoCb.addEventListener('change', function () {
-    try { localStorage.setItem('wamda.auto', autoCb.checked ? '1' : '0'); } catch (e) {}
+    try { localStorage.setItem('twinkle.auto', autoCb.checked ? '1' : '0'); } catch (e) {}
   });
 
   function render(list) {
@@ -401,7 +464,7 @@
   function call(method, url, body, timeoutMs, onProgress, cb) {
     var xhr = new XMLHttpRequest();
     xhr.open(method, url, true);
-    xhr.setRequestHeader('X-Wamda-Upload', '1');
+    xhr.setRequestHeader('X-Twinkle-Upload', '1');
     if (typeof body === 'string') xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.timeout = timeoutMs;
     if (onProgress) xhr.upload.onprogress = onProgress;

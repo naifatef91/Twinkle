@@ -7,17 +7,18 @@
     <string name="live_speed">السرعة</string>
     <string name="live_open">فتح شاشة النقل</string>
     <string name="home_hello">مرحبًا، %1$s</string>
-    <string name="home_headline">أرسل أي ملف، في ومضة.</string>
+    <string name="home_headline">أرسل أي ملف، في لمح البصر.</string>
     <string name="home_secure">اتصال آمن</string>
-    <string name="home_ready">جاهز للنقل</string>
-    <string name="home_ready_sub">اتصال مباشر عبر Wi-Fi، دون إنترنت</string>
-    <string name="home_nearby_none">لا أجهزة قريبة الآن</string>
-    <string name="home_nearby_count">%1$d أجهزة قريبة وجاهزة</string>
     <string name="home_send_hint2">اختر وشارك فورًا</string>
     <string name="home_receive_hint2">اعرض رمز الاتصال</string>
     <string name="home_activity">آخر النشاطات</string>
     <string name="home_transfers">عمليات النقل</string>
     <string name="home_view_all">عرض الكل</string>
-    <string name="home_pc">الكمبيوتر</string>
     <string name="home_cable">الكابل</string>
+    <string name="home_phones">بين الهواتف</string>
+    <string name="home_cable_hint">من هاتف إلى هاتف بكابل USB-C</string>
+    <string name="home_pc_section">مع الكمبيوتر</string>
+    <string name="home_pc_wifi_hint">شبكة مباشرة من الهاتف، دون راوتر</string>
+    <string name="home_pc_lan_hint">أي جهاز على نفس الراوتر، عبر Wi-Fi أو كابل إنترنت</string>
+    <string name="home_pc_usb_hint">وصّل الهاتف بالكمبيوتر بالكابل</string>
 </resources>

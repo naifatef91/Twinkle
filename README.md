@@ -1,4 +1,4 @@
-# ومضة · Wamda
+# Twinkle
 
 <p dir="rtl"><b>نقل الملفات بين الهواتف بأقصى سرعة، دون إنترنت ودون إعلانات.</b><br>
 تطبيق أندرويد يربط هاتفين مباشرة عبر Wi-Fi Direct على نطاق 5GHz، يشفّر كل اتصال بـ TLS 1.3، ويستكمل النقل بعد أي انقطاع. يدعم أيضًا النقل إلى الكمبيوتر من المتصفح، والنقل بكابل USB-C، والإرسال لعدة أجهزة.</p>
@@ -31,10 +31,10 @@ Wi-Fi Direct group (5GHz)  ──QR / BLE──▶     joins the network (WifiNe
 TLS 1.3 server :48080      ◀──TLS──────      control stream: HELLO, MANIFEST
                            ──NEED──────▶     which chunks are missing (resume / dedupe)
                            ◀══N×DATA════     parallel data streams, 4 MiB frames
-MediaStore (Download/Wamda) ──ACK──────▶     DONE
+MediaStore (Download/Twinkle) ──ACK──────▶     DONE
 ```
 
-- The frame protocol is transport-agnostic: the same code runs over TLS sockets, USB accessory streams, and Wi-Fi Aware data paths. See [`app/src/main/java/app/barq/engine`](app/src/main/java/app/barq/engine).
+- The frame protocol is transport-agnostic: the same code runs over TLS sockets, USB accessory streams, and Wi-Fi Aware data paths. See [`app/src/main/java/app/twinkle/engine`](app/src/main/java/app/twinkle/engine).
 - The receiver only ever asks for the chunks it lacks, which gives resume, reconnection and duplicate skipping from one mechanism.
 - Full product specification (Arabic): [`docs/spec.html`](docs/spec.html).
 
@@ -51,7 +51,7 @@ The APK lands in `app/build/outputs/apk/debug/app-debug.apk`. On Xiaomi/HyperOS 
 ## البنية · Layout
 
 ```
-app/src/main/java/app/barq/
+app/src/main/java/app/twinkle/
 ├── engine/     frame protocol, Sender, Receiver, BroadcastHost, resume store, quick hash, Link
 ├── crypto/     in-app TLS identity and socket factories
 ├── net/        Wi-Fi Direct host, Wi-Fi client, BLE advertise/scan, Wi-Fi Aware, usb/ (AOA + mux)

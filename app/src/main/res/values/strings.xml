@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ومضة</string>
+    <string name="app_name">Twinkle</string>
     <string name="home_send">إرسال</string>
     <string name="home_receive">استلام</string>
 
@@ -38,7 +38,7 @@
     <string name="receive_network_note">تُحذف تلقائيًا بعد انتهاء النقل</string>
     <string name="send_picked_count">%1$d ملف جاهز للإرسال</string>
     <string name="send_pick_hint">الصور والفيديو تُرسل كما هي دون ضغط</string>
-    <string name="send_bad_qr">هذا الكود ليس كود ومضة</string>
+    <string name="send_bad_qr">هذا الكود ليس كود Twinkle</string>
     <string name="transfer_sending_to">إرسال إلى</string>
     <string name="transfer_receiving_from">استلام من</string>
     <string name="transfer_files">الملفات</string>
@@ -86,7 +86,7 @@
     <string name="theme_system">النظام</string>
     <string name="theme_light">فاتح</string>
     <string name="theme_dark">داكن</string>
-    <string name="settings_about">ومضة 0.1.0</string>
+    <string name="settings_about">Twinkle 0.1.0</string>
     <string name="settings_name_dialog_title">تغيير اسم الجهاز</string>
     <string name="settings_name_edit">تعديل</string>
     <string name="save">حفظ</string>
@@ -125,14 +125,14 @@
     <string name="tab_folders">مجلدات</string>
     <string name="pick_add_folder">إضافة مجلد</string>
     <string name="pick_folder_summary">%1$d ملف · %2$s</string>
-    <string name="pick_folders_hint">اختر مجلدًا فيُرسل بكل محتوياته ويُحفظ عند المستقبل بنفس البنية داخل Download/Wamda</string>
+    <string name="pick_folders_hint">اختر مجلدًا فيُرسل بكل محتوياته ويُحفظ عند المستقبل بنفس البنية داخل Download/Twinkle</string>
     <string name="send_preparing">جارٍ تجهيز الملفات…</string>
     <string name="cable_title">النقل بالكابل</string>
     <string name="cable_searching">وصّل الهاتفين بكابل USB-C…</string>
     <string name="cable_switching">جارٍ تهيئة الهاتف الآخر لوضع الملحق…</string>
-    <string name="cable_hint">قد يظهر على أحد الهاتفين طلب «السماح لومضة بالوصول»؛ اقبله. إن لم يحدث شيء فاقلب طرفي الكابل.</string>
+    <string name="cable_hint">قد يظهر على أحد الهاتفين طلب «السماح لتطبيق Twinkle بالوصول»؛ اقبله. إن لم يحدث شيء فاقلب طرفي الكابل.</string>
     <string name="cable_steps_title">كيف يعمل</string>
-    <string name="cable_steps">كابل USB-C بين الهاتفين مباشرة. أحدهما يعمل كمضيف USB والآخر كملحق؛ ومضة تختار الأدوار تلقائيًا. السرعة تعتمد على المنفذ: USB 2.0 نحو 30 MB/s، وUSB 3 أعلى بكثير. مع Wi-Fi متصل في نفس الوقت يُستخدم المساران معًا.</string>
+    <string name="cable_steps">كابل USB-C بين الهاتفين مباشرة. أحدهما يعمل كمضيف USB والآخر كملحق؛ Twinkle تختار الأدوار تلقائيًا. السرعة تعتمد على المنفذ: USB 2.0 نحو 30 MB/s، وUSB 3 أعلى بكثير. مع Wi-Fi متصل في نفس الوقت يُستخدم المساران معًا.</string>
     <string name="cable_connected">متصل بـ %1$s</string>
     <string name="cable_role_host">هذا الهاتف هو مضيف USB</string>
     <string name="cable_role_accessory">هذا الهاتف في وضع الملحق</string>
@@ -180,10 +180,10 @@
     <string name="send_to_same">إرسال إلى %1$s</string>
 
     <string name="notif_channel">عمليات النقل</string>
-    <string name="notif_running">ومضة يعمل</string>
+    <string name="notif_running">Twinkle يعمل</string>
     <string name="notif_pc">وضع الكمبيوتر يعمل، افتح الرابط من متصفح الكمبيوتر</string>
     <string name="settings_battery">إبقاء النقل شغّالًا</string>
-    <string name="settings_battery_hint">إن أوقفت هواتف مثل Xiaomi وSamsung النقل عند إطفاء الشاشة، اختر ومضة هنا وافتح «بلا قيود»</string>
+    <string name="settings_battery_hint">إن أوقفت هواتف مثل Xiaomi وSamsung النقل عند إطفاء الشاشة، اختر Twinkle هنا وافتح «بلا قيود»</string>
     <string name="settings_battery_open">فتح</string>
     <string name="discover_waiting">بانتظار موافقة الجهاز الآخر…</string>
     <string name="discover_denied">رفض الجهاز الآخر الاتصال</string>
@@ -192,7 +192,7 @@
     <string name="connect_request_title">طلب اتصال</string>
     <string name="connect_request_body">«%1$s» يرغب بالاتصال بجهازك. لن تُرسَل إليه بيانات الشبكة إلا إذا وافقت.</string>
     <string name="install_app">تثبيت «%1$s»</string>
-    <string name="install_allow_source">اسمح لومضة بتثبيت التطبيقات من الصفحة التالية ثم اضغط «تثبيت» مرة أخرى</string>
+    <string name="install_allow_source">اسمح لتطبيق Twinkle بتثبيت التطبيقات من الصفحة التالية ثم اضغط «تثبيت» مرة أخرى</string>
     <string name="install_ok">تم تثبيت التطبيق</string>
     <string name="install_cancelled">أُلغي التثبيت</string>
     <string name="install_failed">تعذّر التثبيت: %1$s</string>
@@ -208,4 +208,16 @@
     <string name="dev_unlocked">فُعّلت خيارات المطورين</string>
     <string name="dev_already">خيارات المطورين مفعّلة بالفعل</string>
     <string name="dev_taps_left">بقيت %1$d نقرات لتفعيل خيارات المطورين</string>
+    <string name="wifi_off_title">الواي فاي غير مفعّل</string>
+    <string name="wifi_off_body">النقل بين الهواتف يتم عبر Wi-Fi مباشرة، ولا يحتاج إلى إنترنت.</string>
+    <string name="wifi_turn_on">تشغيل الواي فاي</string>
+    <string name="bt_off_short">البلوتوث مطفأ، فلن تظهر الأجهزة القريبة. يمكنك مسح كود المستقبل.</string>
+    <string name="bt_turn_on">تشغيل</string>
+    <string name="err_wifi_off">انطفأ الواي فاي. شغّله ثم حاول مرة أخرى.</string>
+    <string name="err_group">تعذّر إنشاء شبكة Wi-Fi المباشر. أطفئ الواي فاي وشغّله، ثم حاول مرة أخرى.</string>
+    <string name="err_join">تعذّر الاتصال بشبكة الهاتف الآخر. قرّب الهاتفين من بعضهما وحاول مرة أخرى.</string>
+    <string name="err_unreachable">لم يستجب الهاتف الآخر. تأكد أن صفحة الاستلام ما زالت مفتوحة عليه.</string>
+    <string name="err_lost">انقطع الاتصال بالهاتف الآخر أثناء النقل.</string>
+    <string name="err_generic">حدث خطأ غير متوقع.
+%1$s</string>
 </resources>

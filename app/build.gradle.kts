@@ -15,11 +15,11 @@ val keystoreProps = Properties().apply {
 val hasUploadKey = keystoreProps.getProperty("storeFile") != null
 
 android {
-    namespace = "app.barq"
+    namespace = "app.twinkle"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "app.barq"
+        applicationId = "app.twinkle"
         minSdk = 29
         targetSdk = 36
         versionCode = 3

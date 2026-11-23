@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Wamda</string>
+    <string name="app_name">Twinkle</string>
     <string name="home_send">Send</string>
     <string name="home_receive">Receive</string>
 
     <string name="perm_title">Permissions needed</string>
-    <string name="perm_body">Wamda needs the Nearby devices permission to create a direct network between the two phones, and Notifications to show transfer progress.</string>
+    <string name="perm_body">Twinkle needs the Nearby devices permission to create a direct network between the two phones, and Notifications to show transfer progress.</string>
     <string name="perm_grant">Grant permissions</string>
 
     <string name="receive_preparing">Creating direct network…</string>
@@ -38,7 +38,7 @@
     <string name="receive_network_note">Removed automatically after the transfer</string>
     <string name="send_picked_count">%1$d files ready to send</string>
     <string name="send_pick_hint">Photos and videos are sent as-is, never recompressed</string>
-    <string name="send_bad_qr">That is not a Wamda code</string>
+    <string name="send_bad_qr">That is not a Twinkle code</string>
     <string name="transfer_sending_to">Sending to</string>
     <string name="transfer_receiving_from">Receiving from</string>
     <string name="transfer_files">Files</string>
@@ -86,7 +86,7 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
-    <string name="settings_about">Wamda 0.1.0</string>
+    <string name="settings_about">Twinkle 0.1.0</string>
     <string name="settings_name_dialog_title">Change device name</string>
     <string name="settings_name_edit">Edit</string>
     <string name="save">Save</string>
@@ -125,14 +125,14 @@
     <string name="tab_folders">Folders</string>
     <string name="pick_add_folder">Add folder</string>
     <string name="pick_folder_summary">%1$d files · %2$s</string>
-    <string name="pick_folders_hint">Pick a folder to send everything in it; the receiver keeps the same structure inside Download/Wamda</string>
+    <string name="pick_folders_hint">Pick a folder to send everything in it; the receiver keeps the same structure inside Download/Twinkle</string>
     <string name="send_preparing">Preparing files…</string>
     <string name="cable_title">Cable transfer</string>
     <string name="cable_searching">Connect both phones with a USB-C cable…</string>
     <string name="cable_switching">Switching the other phone to accessory mode…</string>
-    <string name="cable_hint">One phone may ask to allow Wamda to access the device; accept it. If nothing happens, flip the cable around.</string>
+    <string name="cable_hint">One phone may ask to allow Twinkle to access the device; accept it. If nothing happens, flip the cable around.</string>
     <string name="cable_steps_title">How it works</string>
-    <string name="cable_steps">A USB-C cable directly between the phones. One acts as USB host, the other as accessory; Wamda picks the roles. Speed depends on the port: about 30 MB/s on USB 2.0, far more on USB 3. With Wi-Fi connected at the same time, both paths are used together.</string>
+    <string name="cable_steps">A USB-C cable directly between the phones. One acts as USB host, the other as accessory; Twinkle picks the roles. Speed depends on the port: about 30 MB/s on USB 2.0, far more on USB 3. With Wi-Fi connected at the same time, both paths are used together.</string>
     <string name="cable_connected">Connected to %1$s</string>
     <string name="cable_role_host">This phone is the USB host</string>
     <string name="cable_role_accessory">This phone is in accessory mode</string>
@@ -170,7 +170,7 @@
     <string name="pick_media_hint">Choose what to send in the system picker. The app only sees what you pick</string>
     <string name="pick_choose">Choose</string>
     <string name="pick_add">Add</string>
-    <string name="pick_need_permission">Wamda needs access to photos, videos and audio to list them here</string>
+    <string name="pick_need_permission">Twinkle needs access to photos, videos and audio to list them here</string>
     <string name="pick_loading">Loading…</string>
     <string name="pick_walking">Reading folder…</string>
 
@@ -180,10 +180,10 @@
     <string name="send_to_same">Send to %1$s</string>
 
     <string name="notif_channel">Transfers</string>
-    <string name="notif_running">Wamda is running</string>
+    <string name="notif_running">Twinkle is running</string>
     <string name="notif_pc">PC mode is on, open the link in the computer\'s browser</string>
     <string name="settings_battery">Keep transfers running</string>
-    <string name="settings_battery_hint">If a Xiaomi or Samsung phone stops transfers when the screen turns off, pick Wamda here and choose “Unrestricted”</string>
+    <string name="settings_battery_hint">If a Xiaomi or Samsung phone stops transfers when the screen turns off, pick Twinkle here and choose “Unrestricted”</string>
     <string name="settings_battery_open">Open</string>
     <string name="discover_waiting">Waiting for the other device to approve…</string>
     <string name="discover_denied">The other device declined the connection</string>
@@ -192,7 +192,7 @@
     <string name="connect_request_title">Connection request</string>
     <string name="connect_request_body">“%1$s” wants to connect to your device. No network details are sent unless you accept.</string>
     <string name="install_app">Install “%1$s”</string>
-    <string name="install_allow_source">Allow Wamda to install apps on the next page, then tap Install again</string>
+    <string name="install_allow_source">Allow Twinkle to install apps on the next page, then tap Install again</string>
     <string name="install_ok">App installed</string>
     <string name="install_cancelled">Installation cancelled</string>
     <string name="install_failed">Installation failed: %1$s</string>
@@ -208,4 +208,16 @@
     <string name="dev_unlocked">Developer options enabled</string>
     <string name="dev_already">Developer options are already enabled</string>
     <string name="dev_taps_left">%1$d more taps to enable developer options</string>
+    <string name="wifi_off_title">Wi-Fi is off</string>
+    <string name="wifi_off_body">Phones send files to each other over Wi-Fi directly. No internet needed.</string>
+    <string name="wifi_turn_on">Turn on Wi-Fi</string>
+    <string name="bt_off_short">Bluetooth is off, so nearby devices will not show. You can scan the receiver\'s code.</string>
+    <string name="bt_turn_on">Turn on</string>
+    <string name="err_wifi_off">Wi-Fi went off. Turn it on and try again.</string>
+    <string name="err_group">Could not create the Wi-Fi Direct network. Turn Wi-Fi off and on, then try again.</string>
+    <string name="err_join">Could not join the other phone\'s network. Bring the phones closer and try again.</string>
+    <string name="err_unreachable">The other phone did not answer. Make sure its receive screen is still open.</string>
+    <string name="err_lost">The connection to the other phone dropped during the transfer.</string>
+    <string name="err_generic">Something went wrong.
+%1$s</string>
 </resources>

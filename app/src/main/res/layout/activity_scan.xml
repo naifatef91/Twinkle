@@ -18,7 +18,7 @@
         app:zxing_preview_scaling_strategy="centerCrop" />
 
     <!-- Bold corner brackets + hint text, drawn over the same centred 260dp square. -->
-    <app.barq.ui.ScanFrameView
+    <app.twinkle.ui.ScanFrameView
         android:id="@+id/scan_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

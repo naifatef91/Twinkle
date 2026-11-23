@@ -1,15 +1,15 @@
-# نصوص Google Play Console · ومضة (Wamda)
+# نصوص Google Play Console · Twinkle
 
 كل ما يُلصق في Play Console عند أول رفع. النصوص بالعربية أولًا ثم الإنجليزية حيث يطلب Play نسختين.
 
 رابط سياسة الخصوصية العام (بعد تفعيل GitHub Pages):
-`https://naifatef91.github.io/wamda/privacy.html`
+`https://naifatef91.github.io/Twinkle/privacy.html`
 
 ---
 
 ## 1. بيانات التطبيق (Store listing)
 
-**الاسم:** ومضة · Wamda
+**الاسم:** Twinkle
 
 **الوصف القصير (80 حرفًا):**
 - ar: نقل الملفات بين الهواتف وإلى الكمبيوتر بسرعة عالية، دون إنترنت وبلا إعلانات.
@@ -19,7 +19,7 @@
 
 ar:
 ```
-ومضة ينقل الملفات بين هاتفين عبر Wi-Fi مباشر على نطاق 5 جيجاهرتز بسرعة تتجاوز 35 ميجابايت في الثانية، دون إنترنت ودون حساب ودون إعلانات.
+Twinkle ينقل الملفات بين هاتفين عبر Wi-Fi مباشر على نطاق 5 جيجاهرتز بسرعة تتجاوز 35 ميجابايت في الثانية، دون إنترنت ودون حساب ودون إعلانات.
 
 • اقتران بمسح كود QR أو من رادار الأجهزة القريبة
 • صور وفيديو وصوت وتطبيقات ومجلدات كاملة بنفس البنية
@@ -30,12 +30,12 @@ ar:
 • بث لعدة مستقبلين دفعة واحدة
 • كل اتصال Wi-Fi مشفّر بـ TLS 1.3، والملفات لا تغادر الجهازين أبدًا
 
-التطبيق مفتوح المصدر: github.com/naifatef91/wamda
+التطبيق مفتوح المصدر: github.com/naifatef91/Twinkle
 ```
 
 en:
 ```
-Wamda moves files between two phones over direct 5 GHz Wi-Fi at more than 35 MB/s, with no internet, no account and no ads.
+Twinkle moves files between two phones over direct 5 GHz Wi-Fi at more than 35 MB/s, with no internet, no account and no ads.
 
 • Pair by scanning a QR code or from the nearby-devices radar
 • Photos, videos, audio, apps and whole folders with their structure
@@ -46,7 +46,7 @@ Wamda moves files between two phones over direct 5 GHz Wi-Fi at more than 35 MB/
 • Broadcast to several receivers at once
 • Every Wi-Fi connection is TLS 1.3 encrypted and files never leave the two devices
 
-Open source: github.com/naifatef91/wamda
+Open source: github.com/naifatef91/Twinkle
 ```
 
 **الفئة:** Tools · **التصنيف العمري:** استبيان IARC، لا محتوى للمستخدمين ولا تفاعل اجتماعي ← Everyone.
@@ -67,12 +67,12 @@ Open source: github.com/naifatef91/wamda
 
 **ACCESS_FINE_LOCATION (أندرويد 10 إلى 12 فقط، maxSdkVersion 32):**
 ```
-Android 10–12 requires fine location to use Wi-Fi Direct and to scan for Bluetooth LE advertisements. Wamda uses it only to discover nearby phones running the app and to create the direct Wi-Fi link. The app never reads, stores or transmits location data, and on Android 13+ it uses NEARBY_WIFI_DEVICES with neverForLocation and BLUETOOTH_SCAN with neverForLocation instead, so the permission is not requested there at all.
+Android 10–12 requires fine location to use Wi-Fi Direct and to scan for Bluetooth LE advertisements. Twinkle uses it only to discover nearby phones running the app and to create the direct Wi-Fi link. The app never reads, stores or transmits location data, and on Android 13+ it uses NEARBY_WIFI_DEVICES with neverForLocation and BLUETOOTH_SCAN with neverForLocation instead, so the permission is not requested there at all.
 ```
 
 **BLUETOOTH_SCAN / BLUETOOTH_ADVERTISE / BLUETOOTH_CONNECT:**
 ```
-Bluetooth LE is used only to advertise and discover phones running Wamda nearby (the "radar") and to hand over the pairing details for the Wi-Fi Direct link. No files are carried over Bluetooth and no device addresses are stored.
+Bluetooth LE is used only to advertise and discover phones running Twinkle nearby (the "radar") and to hand over the pairing details for the Wi-Fi Direct link. No files are carried over Bluetooth and no device addresses are stored.
 ```
 
 **CAMERA:**
@@ -95,11 +95,11 @@ Lists the user's photos, videos and audio inside the app so they can pick what t
 
 **الوصف (يُلصق في النموذج):**
 ```
-Wamda transfers files directly between two devices over a local Wi-Fi Direct or USB link. A transfer of several gigabytes takes minutes, and the user naturally turns the screen off or switches apps while it runs. The foreground service keeps the transfer process and a partial wake lock alive for the duration of the transfer only, and shows an ongoing notification with live progress (speed, bytes done, cancel). It starts when a transfer begins and stops as soon as the transfer finishes, fails or is cancelled. Without it, Android would kill the process or suspend the sockets and the transfer would be corrupted or lost. No data is synced with any server; "dataSync" is the closest declared type for a user-initiated bulk data transfer between devices.
+Twinkle transfers files directly between two devices over a local Wi-Fi Direct or USB link. A transfer of several gigabytes takes minutes, and the user naturally turns the screen off or switches apps while it runs. The foreground service keeps the transfer process and a partial wake lock alive for the duration of the transfer only, and shows an ongoing notification with live progress (speed, bytes done, cancel). It starts when a transfer begins and stops as soon as the transfer finishes, fails or is cancelled. Without it, Android would kill the process or suspend the sockets and the transfer would be corrupted or lost. No data is synced with any server; "dataSync" is the closest declared type for a user-initiated bulk data transfer between devices.
 ```
 
 **الفيديو المطلوب (30 ثانية، يُسجَّل من الهاتف):**
-1. افتح ومضة ← استلام، وامسح الكود من هاتف ثانٍ (أو العكس).
+1. افتح Twinkle ← استلام، وامسح الكود من هاتف ثانٍ (أو العكس).
 2. ابدأ نقل ملف كبير (فيديو 1 GB مثلًا).
 3. اسحب شريط الإشعارات لإظهار إشعار التقدّم، ثم اضغط زر الطاقة لإطفاء الشاشة لثوانٍ، ثم أعد تشغيلها.
 4. افتح التطبيق وأظهر أن النقل استمر واكتمل، وأن الإشعار اختفى.
