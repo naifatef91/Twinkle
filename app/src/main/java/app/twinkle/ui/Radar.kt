@@ -150,7 +150,6 @@ fun DiscoverScreen(
                 if (scanning) Box(Modifier.size(8.dp).clip(CircleShape).background(c.primary))
                 Text(
                     when {
-                        !scanning && !awareOn -> stringResource(R.string.discover_bt_off)
                         fetching != null -> stringResource(if (waiting) R.string.discover_waiting else R.string.discover_fetching)
                         devices.isEmpty() -> stringResource(if (awareOn) R.string.discover_searching_aware else R.string.discover_searching)
                         else -> stringResource(R.string.discover_found, devices.size)

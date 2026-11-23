@@ -83,6 +83,9 @@ class HttpServer(
         REFUSED,
     }
 
+    /** The phone's own network is open to sign-ins and signed-in browsers. */
+    @Volatile private var lanOpenFlag = false
+    /** The PIN new browsers must enter; null while a burnt PIN is being replaced (no new sign-ins then). */
     @Volatile private var lanPin: String? = null
     private val sessions = LinkedHashSet<String>()
     private val authLock = Any()
@@ -90,17 +93,25 @@ class HttpServer(
     private val failuresByIp = HashMap<String, Pair<Int, Long>>()
     private val random = java.security.SecureRandom()
 
-    /** Lets devices on the phone's own network in, with [pin]. Signs out every browser that used an older PIN. */
-    fun openLan(pin: String) {
-        synchronized(authLock) { lanPin = pin; sessions.clear(); failuresTotal = 0; failuresByIp.clear() }
+    /**
+     * Lets devices on the phone's own network in, with [pin]. By default every browser that used an older PIN is
+     * signed out (the owner asked for a new PIN). [keepSessions] replaces a PIN that was burnt by guessing: browsers
+     * already signed in stay in, and addresses that were guessing stay rate-limited, so a guesser cannot sign the
+     * owner's computer out.
+     */
+    fun openLan(pin: String, keepSessions: Boolean = false) {
+        synchronized(authLock) {
+            lanPin = pin; lanOpenFlag = true; failuresTotal = 0
+            if (!keepSessions) { sessions.clear(); failuresByIp.clear() }
+        }
     }
 
     /** Closes the phone's own network again and signs every browser on it out. */
     fun closeLan() {
-        synchronized(authLock) { lanPin = null; sessions.clear(); failuresTotal = 0; failuresByIp.clear() }
+        synchronized(authLock) { lanPin = null; lanOpenFlag = false; sessions.clear(); failuresTotal = 0; failuresByIp.clear() }
     }
 
-    val lanOpen: Boolean get() = lanPin != null
+    val lanOpen: Boolean get() = lanOpenFlag
 
     @Serializable
     private data class LoginJson(val pin: String = "")
@@ -196,7 +207,7 @@ class HttpServer(
         // Wi-Fi/Ethernet network is shared with every device on the router, so it is closed unless the
         // user opened it, and then needs the PIN. Mobile data and VPNs are never answered.
         val link = classify(socket)
-        if (link == Link.REFUSED || (link == Link.LAN && lanPin == null)) {
+        if (link == Link.REFUSED || (link == Link.LAN && !lanOpenFlag)) {
             Log.w(TAG, "refused ${socket.inetAddress?.hostAddress} on ${socket.localAddress?.hostAddress}: $link link not open")
             runCatching { socket.close() }
             return
@@ -302,7 +313,7 @@ class HttpServer(
             // The page itself and its assets hold nothing private; everything else needs a signed-in browser.
             val public = get && (path == "/" || path == "/index.html" || path.startsWith("/pc/"))
             if (req.method == "POST" && path == "/api/login") return login(req, client)
-            if (lanPin == null) return text(403, "Closed")
+            if (!lanOpenFlag) return text(403, "Closed")
             if (!public && !signedIn(req)) return jsonReply(401, """{"error":"auth"}""")
         }
         // The page polls /api/status every 2 s: that is what "connected" on the phone means.
@@ -344,7 +355,9 @@ class HttpServer(
         val pin = try { wireJson.decodeFromString(LoginJson.serializer(), raw).pin } catch (e: Exception) { throw BadRequest("Bad login body") }
         var exhausted = false
         val reply: Response = synchronized(authLock) {
-            val expected = lanPin ?: return@synchronized text(403, "Closed")
+            if (!lanOpenFlag) return@synchronized text(403, "Closed")
+            // PIN burnt and not replaced yet: no sign-ins for a moment, the owner's browsers keep working.
+            val expected = lanPin ?: return@synchronized jsonReply(429, """{"error":"wait"}""")
             val now = System.currentTimeMillis()
             val (count, since) = failuresByIp[client]?.takeIf { now - it.second < FAIL_WINDOW_MS } ?: (0 to now)
             if (count >= MAX_FAILS_PER_IP) return@synchronized jsonReply(429, """{"error":"wait"}""")
@@ -358,11 +371,11 @@ class HttpServer(
                 }
             } else {
                 failuresByIp[client] = (count + 1) to since
-                if (++failuresTotal >= MAX_FAILS_TOTAL) { exhausted = true; lanPin = null; sessions.clear() }
+                if (++failuresTotal >= MAX_FAILS_TOTAL) { exhausted = true; lanPin = null }
                 jsonReply(403, """{"error":"pin"}""")
             }
         }
-        // Too many guesses in total: this PIN is burnt. The owner gets a fresh one (shown on the phone).
+        // Too many guesses in total: this PIN is burnt. A fresh one replaces it (shown on the phone); signed-in browsers stay.
         if (exhausted) runCatching { onPinExhausted() }
         return reply
     }

@@ -669,7 +669,7 @@ object TransferController {
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "usb send failed", e)
                 lastStats?.let { st -> record(app, Direction.SEND, peer, "USB", st, startedAt, st.snapshot().files.count { !it.skipped && it.done < it.size }) }
-                _state.value = TransferState.Failed(describe(app, e), retryable = false)
+                _state.value = TransferState.Failed(describe(app, e, overWifi = false), retryable = false)
             }
         }
     }
@@ -704,7 +704,7 @@ object TransferController {
                         _state.value = TransferState.Finished(Direction.RECEIVE, peer, stats?.snapshot() ?: emptySnapshot(), r.incompleteFiles.size, sessionOpen = false)
                         done.complete(Unit)
                     },
-                    onDropped = { e -> _state.value = TransferState.Failed(describe(app, e), retryable = false); done.complete(Unit) },
+                    onDropped = { e -> _state.value = TransferState.Failed(describe(app, e, overWifi = false), retryable = false); done.complete(Unit) },
                     streams = settings.state.value.streams,
                 )
                 activeReceiver = receiver
@@ -716,7 +716,7 @@ object TransferController {
                 throw e
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "usb receive failed", e)
-                _state.value = TransferState.Failed(describe(app, e), retryable = false)
+                _state.value = TransferState.Failed(describe(app, e, overWifi = false), retryable = false)
             } finally {
                 activeReceiver = null
             }
@@ -834,7 +834,7 @@ object TransferController {
      * exception (type, message, root cause) goes to the log, and stays on screen only for failures with no
      * better explanation, so support can still read it.
      */
-    private fun describe(app: Context, e: Throwable): String {
+    private fun describe(app: Context, e: Throwable, overWifi: Boolean = true): String {
         val chain = generateSequence(e) { it.cause }.toList()
         val root = chain.last()
         val head = "${e.javaClass.simpleName}: ${e.message ?: ""}".trim().trimEnd(':')
@@ -843,7 +843,7 @@ object TransferController {
         val messages = chain.mapNotNull { it.message }
         val wifiOn = runCatching { (app.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager).isWifiEnabled }.getOrDefault(true)
         return when {
-            !wifiOn -> app.getString(R.string.err_wifi_off)
+            overWifi && !wifiOn -> app.getString(R.string.err_wifi_off)
             messages.any { "Wi-Fi Direct group" in it } -> app.getString(R.string.err_group)
             messages.any { it.startsWith("Could not join") } -> app.getString(R.string.err_join)
             chain.any { it is java.net.ConnectException || it is java.net.SocketTimeoutException || it is java.net.NoRouteToHostException } ->

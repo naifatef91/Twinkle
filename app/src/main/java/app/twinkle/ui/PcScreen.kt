@@ -71,7 +71,9 @@ fun PcScreen(mode: PcMode, onBack: () -> Unit, onPickFiles: () -> Unit, shared: 
     // Wi-Fi mode hosts a Wi-Fi Direct network: wait for Wi-Fi to be on (the notice below asks for it).
     val wifiOn = rememberWifiOn()
     val blocked = mode == PcMode.WIFI && !wifiOn
-    LaunchedEffect(mode, blocked) { if (!blocked) PcSession.start(ctx, mode) }
+    // Turning Wi-Fi off tears the group down under us: stop the session so the return of Wi-Fi starts a new one
+    // instead of showing the old network name and address.
+    LaunchedEffect(mode, blocked) { if (blocked) PcSession.stop() else PcSession.start(ctx, mode) }
     LaunchedEffect(shared) { PcSession.setShared(shared) }
 
     val stop = { PcSession.stop(); onBack() }
