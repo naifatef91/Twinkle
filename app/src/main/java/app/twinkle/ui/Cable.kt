@@ -1,0 +1,117 @@
+package app.twinkle.ui
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.twinkle.R
+import app.twinkle.TransferController
+import app.twinkle.TransferState
+import app.twinkle.net.usb.UsbSession
+import app.twinkle.net.usb.UsbState
+import app.twinkle.ui.theme.extras
+
+/** USB-C cable mode: detect the other phone, then send or receive over the cable. */
+@Composable
+fun CableScreen(onBack: () -> Unit, onPickFiles: () -> Unit) {
+    val ctx = LocalContext.current
+    val c = MaterialTheme.colorScheme
+    val x = MaterialTheme.extras
+    val usb by UsbSession.state.collectAsStateWithLifecycle()
+    val state by TransferController.state.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { TransferController.attachUsb(ctx) }
+    BackHandler { onBack() }
+
+    when (val s = state) {
+        is TransferState.Running -> { TransferView(s.direction, s.peer, s.band, s.snapshot, onBack); return }
+        is TransferState.Finished -> { FinishedView(s, onBack); return }
+        is TransferState.Failed -> { FailedView(s.message, false, onBack); return }
+        is TransferState.Preparing -> {
+            Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+                TopBar(stringResource(R.string.cable_title), onBack = onBack)
+                Centered { Spinner(stringResource(if (s.step == TransferState.Step.PREPARE) R.string.send_preparing else R.string.send_handshake)) }
+            }
+            return
+        }
+        else -> {}
+    }
+
+    Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+        TopBar(stringResource(R.string.cable_title), onBack = onBack)
+        Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            when (val u = usb) {
+                is UsbState.Connected -> {
+                    TwinkleCard(Modifier.fillMaxWidth(), tint = x.okSoft) {
+                        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            IconBadge(TwinkleIcons.Check, x.ok, c.surface)
+                            Column(Modifier.weight(1f)) {
+                                Text(stringResource(R.string.cable_connected, u.peerName), style = MaterialTheme.typography.titleMedium, color = x.ok, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(stringResource(if (u.role == "host") R.string.cable_role_host else R.string.cable_role_accessory), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                            }
+                        }
+                    }
+                    TwinkleButton(stringResource(R.string.cable_send), onPickFiles, leading = TwinkleIcons.ArrowUp)
+                    Text(stringResource(R.string.cable_waiting_hint), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                    TwinkleCard(Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.cable_multipath_hint), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant, modifier = Modifier.padding(14.dp))
+                    }
+                }
+                is UsbState.Failed -> {
+                    TwinkleCard(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(stringResource(R.string.cable_failed), style = MaterialTheme.typography.titleMedium, color = c.error)
+                            Text(u.message, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                        }
+                    }
+                    TwinkleButton(stringResource(R.string.retry), { UsbSession.stop(); UsbSession.start(ctx) }, kind = ButtonKind.Tonal, height = 52)
+                }
+                else -> {
+                    val hint = (u as? UsbState.Searching)?.hint
+                    TwinkleCard(Modifier.fillMaxWidth()) {
+                        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            CircularProgressIndicator(Modifier.height(22.dp).fillMaxWidth(0.08f), strokeWidth = 2.dp)
+                            Column(Modifier.weight(1f)) {
+                                Text(stringResource(if (hint == "switching") R.string.cable_switching else R.string.cable_searching), style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(R.string.cable_hint), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                            }
+                        }
+                    }
+                    TwinkleCard(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(stringResource(R.string.cable_steps_title), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.cable_steps), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                        }
+                    }
+                    TwinkleButton(stringResource(R.string.retry), { UsbSession.start(ctx) }, kind = ButtonKind.Tonal, height = 52)
+                }
+            }
+        }
+        Spacer(Modifier.weight(1f))
+    }
+
+    // Incoming cable transfer: same acceptance dialog as Wi-Fi.
+    val awaiting = state as? TransferState.AwaitingAccept
+    if (awaiting != null) {
+        IncomingDialog(awaiting.manifest) { accept, trust -> TransferController.accept(ctx, accept, trust) }
+    }
+}

@@ -3,7 +3,7 @@
 كل ما يُلصق في Play Console عند أول رفع. النصوص بالعربية أولًا ثم الإنجليزية حيث يطلب Play نسختين.
 
 رابط سياسة الخصوصية العام (بعد تفعيل GitHub Pages):
-`https://naifatef91.github.io/wamda/privacy.html`
+`https://naifatef91.github.io/Twinkle/privacy.html`
 
 ---
 
@@ -30,7 +30,7 @@ Twinkle ينقل الملفات بين هاتفين عبر Wi-Fi مباشر عل
 • بث لعدة مستقبلين دفعة واحدة
 • كل اتصال Wi-Fi مشفّر بـ TLS 1.3، والملفات لا تغادر الجهازين أبدًا
 
-التطبيق مفتوح المصدر: github.com/naifatef91/wamda
+التطبيق مفتوح المصدر: github.com/naifatef91/Twinkle
 ```
 
 en:
@@ -46,7 +46,7 @@ Twinkle moves files between two phones over direct 5 GHz Wi-Fi at more than 35 M
 • Broadcast to several receivers at once
 • Every Wi-Fi connection is TLS 1.3 encrypted and files never leave the two devices
 
-Open source: github.com/naifatef91/wamda
+Open source: github.com/naifatef91/Twinkle
 ```
 
 **الفئة:** Tools · **التصنيف العمري:** استبيان IARC، لا محتوى للمستخدمين ولا تفاعل اجتماعي ← Everyone.

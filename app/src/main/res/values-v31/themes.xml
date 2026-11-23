@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Launch screen: the Twinkle icon on its own indigo, instead of the system's default white or black. -->
+    <style name="Theme.Twinkle" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+</resources>

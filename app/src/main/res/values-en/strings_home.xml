@@ -9,15 +9,16 @@
     <string name="home_hello">Hi, %1$s</string>
     <string name="home_headline">Send any file, in a flash.</string>
     <string name="home_secure">Secure link</string>
-    <string name="home_ready">Ready to transfer</string>
-    <string name="home_ready_sub">Direct Wi-Fi link, no internet</string>
-    <string name="home_nearby_none">No devices nearby yet</string>
-    <string name="home_nearby_count">%1$d devices nearby and ready</string>
     <string name="home_send_hint2">Pick and share instantly</string>
     <string name="home_receive_hint2">Show the pairing code</string>
     <string name="home_activity">Recent activity</string>
     <string name="home_transfers">Transfers</string>
     <string name="home_view_all">View all</string>
-    <string name="home_pc">Computer</string>
     <string name="home_cable">Cable</string>
+    <string name="home_phones">Between phones</string>
+    <string name="home_cable_hint">Phone to phone over a USB-C cable</string>
+    <string name="home_pc_section">With a computer</string>
+    <string name="home_pc_wifi_hint">A direct network from the phone, no router</string>
+    <string name="home_pc_lan_hint">Any device on the same router, over Wi-Fi or Ethernet</string>
+    <string name="home_pc_usb_hint">Connect the phone to the computer with a cable</string>
 </resources>

@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Barq"
+rootProject.name = "Twinkle"
 include(":app")

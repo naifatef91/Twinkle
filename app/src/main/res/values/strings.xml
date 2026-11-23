@@ -208,4 +208,16 @@
     <string name="dev_unlocked">فُعّلت خيارات المطورين</string>
     <string name="dev_already">خيارات المطورين مفعّلة بالفعل</string>
     <string name="dev_taps_left">بقيت %1$d نقرات لتفعيل خيارات المطورين</string>
+    <string name="wifi_off_title">الواي فاي غير مفعّل</string>
+    <string name="wifi_off_body">النقل بين الهواتف يتم عبر Wi-Fi مباشرة، ولا يحتاج إلى إنترنت.</string>
+    <string name="wifi_turn_on">تشغيل الواي فاي</string>
+    <string name="bt_off_short">البلوتوث مطفأ، فلن تظهر الأجهزة القريبة. يمكنك مسح كود المستقبل.</string>
+    <string name="bt_turn_on">تشغيل</string>
+    <string name="err_wifi_off">انطفأ الواي فاي. شغّله ثم حاول مرة أخرى.</string>
+    <string name="err_group">تعذّر إنشاء شبكة Wi-Fi المباشر. أطفئ الواي فاي وشغّله، ثم حاول مرة أخرى.</string>
+    <string name="err_join">تعذّر الاتصال بشبكة الهاتف الآخر. قرّب الهاتفين من بعضهما وحاول مرة أخرى.</string>
+    <string name="err_unreachable">لم يستجب الهاتف الآخر. تأكد أن صفحة الاستلام ما زالت مفتوحة عليه.</string>
+    <string name="err_lost">انقطع الاتصال بالهاتف الآخر أثناء النقل.</string>
+    <string name="err_generic">حدث خطأ غير متوقع.
+%1$s</string>
 </resources>

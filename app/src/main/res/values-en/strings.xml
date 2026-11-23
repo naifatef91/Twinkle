@@ -208,4 +208,16 @@
     <string name="dev_unlocked">Developer options enabled</string>
     <string name="dev_already">Developer options are already enabled</string>
     <string name="dev_taps_left">%1$d more taps to enable developer options</string>
+    <string name="wifi_off_title">Wi-Fi is off</string>
+    <string name="wifi_off_body">Phones send files to each other over Wi-Fi directly. No internet needed.</string>
+    <string name="wifi_turn_on">Turn on Wi-Fi</string>
+    <string name="bt_off_short">Bluetooth is off, so nearby devices will not show. You can scan the receiver\'s code.</string>
+    <string name="bt_turn_on">Turn on</string>
+    <string name="err_wifi_off">Wi-Fi went off. Turn it on and try again.</string>
+    <string name="err_group">Could not create the Wi-Fi Direct network. Turn Wi-Fi off and on, then try again.</string>
+    <string name="err_join">Could not join the other phone\'s network. Bring the phones closer and try again.</string>
+    <string name="err_unreachable">The other phone did not answer. Make sure its receive screen is still open.</string>
+    <string name="err_lost">The connection to the other phone dropped during the transfer.</string>
+    <string name="err_generic">Something went wrong.
+%1$s</string>
 </resources>

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pc_title">PC mode</string>
-    <string name="pc_subtitle">Move files from your computer\'s browser, no software needed</string>
     <string name="pc_starting">Creating the network and starting the server…</string>
     <string name="pc_failed">Could not start PC mode: %1$s</string>
     <string name="pc_retry">Retry</string>
@@ -51,13 +49,29 @@
     <string name="pc_options">Network options</string>
     <string name="pc_activity">Activity</string>
     <string name="pc_tab_lan">Same network</string>
-    <string name="pc_lan_title">Devices on the same network</string>
-    <string name="pc_lan_hint">Any computer or device on the same router, over Wi-Fi or an Ethernet cable, opens the link and enters the PIN.</string>
     <string name="pc_lan_none">The phone is not on a Wi-Fi network. Join the same router network the computer is on.</string>
-    <string name="pc_lan_allow">Allow devices on this network</string>
-    <string name="pc_lan_allow_hint">Off by default. Every device needs the PIN before it can see any file.</string>
     <string name="pc_lan_pin">PIN</string>
     <string name="pc_lan_new_pin">New PIN</string>
     <string name="pc_lan_qr_hint">Scan with another device\'s camera to sign in directly.</string>
     <string name="pc_lan_isolation">If the page does not open, the network may block devices from reaching each other (guest and public Wi-Fi). Use Wi-Fi Direct or the cable instead.</string>
+    <string name="pc_title_wifi">Computer over Wi-Fi</string>
+    <string name="pc_title_lan">Computer on the same network</string>
+    <string name="pc_title_usb">Computer over USB-C</string>
+    <string name="pc_starting_server">Starting the server…</string>
+    <string name="pc_open_browser">Open in the browser</string>
+    <string name="pc_address">Address</string>
+    <string name="pc_step_join">Join this network</string>
+    <string name="pc_step_open">Open the address in a browser</string>
+    <string name="pc_qr_hint">Or scan the code with a camera</string>
+    <string name="pc_wait_short">Waiting for the computer</string>
+    <string name="pc_stat_sent">Sent</string>
+    <string name="pc_stat_received">Received</string>
+    <string name="pc_stop_short">Stop</string>
+    <string name="pc_done">Done</string>
+    <string name="pc_step_pin">Enter the PIN</string>
+    <string name="pc_lan_qr_hint2">Or scan the code with a camera to sign in directly</string>
+    <string name="pc_usb_s1">Plug the cable into the computer</string>
+    <string name="pc_usb_s2">Pick “File transfer” in the USB notification</string>
+    <string name="pc_usb_s3">Turn on “USB tethering”</string>
+    <string name="pc_wifi_off_body">The phone creates a Wi-Fi network for the computer to join. No internet needed.</string>
 </resources>
