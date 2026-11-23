@@ -84,7 +84,8 @@ object Aoa {
     const val MODEL = "Twinkle Link"
     const val DESCRIPTION = "Twinkle cable transfer"
     const val VERSION = "1"
-    const val URI = "https://github.com/naifatef91/Twinkle"
+    // Shown by Android on the other phone when it has no app for this accessory.
+    const val URI = "https://play.google.com/store/apps/details?id=app.twinkle"
     const val SERIAL = "0001"
 
     fun isAccessory(d: UsbDevice) = d.vendorId == VID_GOOGLE && d.productId in ACCESSORY_PIDS
