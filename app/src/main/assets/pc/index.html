@@ -262,9 +262,15 @@
   };
   var DL = SVG.replace('1.8', '2') + '<path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14"/></svg>';
 
+  // Downloads go to the phone's separate download port (when it has one), so they never use up the connections
+  // the status checks and uploads need; see HttpServer.start.
+  var dlPort = 0;
+  function dlUrl(id) {
+    return dlPort ? location.protocol + '//' + location.hostname + ':' + dlPort + '/d/' + id : '/d/' + id;
+  }
   function trigger(f) {
     var a = document.createElement('a');
-    a.href = '/d/' + f.id; a.setAttribute('download', f.name); a.style.display = 'none';
+    a.href = dlUrl(f.id); a.setAttribute('download', f.name); a.style.display = 'none';
     document.body.appendChild(a); a.click();
     setTimeout(function () { document.body.removeChild(a); }, 1000);
   }
@@ -333,6 +339,7 @@
       try {
         var d = JSON.parse(xhr.responseText);
         fails = 0; lastOk = Date.now(); phone = d.phone || '';
+        if ((d.dl || 0) !== dlPort) { dlPort = d.dl || 0; lastSig = ''; pollFiles(); }
         totDown.textContent = fmt(d.bytesServed);
         totUp.textContent = fmt(d.bytesReceived);
         updatePill();
@@ -368,7 +375,7 @@
       sub.firstChild.textContent = fmt(f.size);
       meta.appendChild(nm); meta.appendChild(sub);
       var a = document.createElement('a'); a.className = 'btn mint sm';
-      a.href = '/d/' + f.id; a.setAttribute('download', f.name);
+      a.href = dlUrl(f.id); a.setAttribute('download', f.name);
       a.innerHTML = DL; a.appendChild(document.createTextNode('تنزيل'));
       a.setAttribute('aria-label', 'تنزيل ' + f.name);
       li.appendChild(ic); li.appendChild(meta); li.appendChild(a);

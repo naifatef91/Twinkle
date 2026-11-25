@@ -138,12 +138,18 @@ class HttpServer(
     data class Stats(val bytesServed: Long = 0L, val bytesReceived: Long = 0L, val lastClientAddress: String? = null, val lastSeenMs: Long = 0L)
 
     @Serializable
-    private data class StatusJson(val phone: String, val shared: Int, val uploaded: List<String>, val bytesServed: Long, val bytesReceived: Long)
+    private data class StatusJson(
+        val phone: String, val shared: Int, val uploaded: List<String>, val bytesServed: Long, val bytesReceived: Long,
+        /** Port that serves /d/ downloads, 0 when there is no separate one (the page then uses its own port). */
+        val dl: Int = 0,
+    )
 
     private val _stats = MutableStateFlow(Stats())
     val stats: StateFlow<Stats> get() = _stats
 
     private var serverSocket: ServerSocket? = null
+    private var downloadSocket: ServerSocket? = null
+    @Volatile private var downloadPortBound = 0
     private var scope: CoroutineScope? = null
 
     /** Shared file with the int id clients refer to; ids are stable across refreshes. */
@@ -161,21 +167,40 @@ class HttpServer(
     @Serializable
     private data class UploadJson(val saved: List<String>)
 
+    /**
+     * Listens on [port] for the page, its API and uploads, and on [downloadPort] for file downloads.
+     *
+     * Why two ports: a browser opens at most about six connections to one host:port. Each file being downloaded
+     * holds one for its whole length, so a few downloads left the page's 2-second status check no connection at
+     * all; the page then reported "disconnected" while files were still arriving. Downloads on their own port get
+     * their own pool. Same handler and same checks on both. If [downloadPort] cannot be opened the page keeps
+     * downloading from [port], as before.
+     */
     @Synchronized
-    fun start(port: Int = PORT) {
+    fun start(port: Int = PORT, downloadPort: Int? = if (port == PORT) DOWNLOAD_PORT else null) {
         if (serverSocket != null) return
+        val sc = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        scope = sc
+        serverSocket = listen(port, sc)
+        downloadPort?.let { dp ->
+            downloadSocket = runCatching { listen(dp, sc) }
+                .onFailure { Log.w(TAG, "download port $dp unavailable, downloads stay on $port", it) }
+                .getOrNull()
+            downloadPortBound = if (downloadSocket != null) dp else 0
+        }
+    }
+
+    private fun listen(port: Int, sc: CoroutineScope): ServerSocket {
         val ss = ServerSocket()
         ss.reuseAddress = true
         ss.bind(InetSocketAddress(port)) // all interfaces
-        serverSocket = ss
-        val sc = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        scope = sc
         sc.launch {
             while (true) {
                 val client = try { ss.accept() } catch (e: IOException) { break }
                 sc.launch { serve(client) }
             }
         }
+        return ss
     }
 
     @Synchronized
@@ -185,6 +210,9 @@ class HttpServer(
         uploadsById.clear()
         runCatching { serverSocket?.close() }
         serverSocket = null
+        runCatching { downloadSocket?.close() }
+        downloadSocket = null
+        downloadPortBound = 0
         scope?.cancel()
         scope = null
     }
@@ -326,7 +354,7 @@ class HttpServer(
             }
             get && path == "/api/files" -> apiFiles()
             get && path == "/api/status" -> apiStatus()
-            get && path.startsWith("/d/") -> download(req, path.substring(3))
+            get && path.startsWith("/d/") -> download(req, path.substring(3), client)
             req.method == "POST" && path == "/upload" -> upload(req)
             req.method == "POST" && path == "/upload/init" -> uploadInit(req)
             req.method == "POST" && path.startsWith("/upload/chunk/") -> uploadChunk(req, path.removePrefix("/upload/chunk/"))
@@ -412,13 +440,13 @@ class HttpServer(
         val s = _stats.value
         val json = wireJson.encodeToString(
             StatusJson.serializer(),
-            StatusJson(phoneName(), filesProvider().size, uploadedNames().takeLast(20), s.bytesServed, s.bytesReceived),
+            StatusJson(phoneName(), filesProvider().size, uploadedNames().takeLast(20), s.bytesServed, s.bytesReceived, downloadPortBound),
         )
         return bytesResponse(200, "application/json; charset=utf-8", json.toByteArray(StandardCharsets.UTF_8))
             .also { it.headers["Cache-Control"] = "no-store" }
     }
 
-    private fun download(req: Request, idText: String): Response {
+    private fun download(req: Request, idText: String, client: String = ""): Response {
         val id = idText.toIntOrNull() ?: return text(404, "Not found")
         val shared = refreshSnapshot().firstOrNull { it.id == id } ?: return text(404, "Not found")
         val file = shared.file
@@ -464,7 +492,12 @@ class HttpServer(
                     if (n < 0) break
                     out.write(buf, 0, n)
                     left -= n
-                    _stats.update { it.copy(bytesServed = it.bytesServed + n) }
+                    // A computer pulling a file is connected even if its status checks are slow to arrive.
+                    val now = System.currentTimeMillis()
+                    _stats.update {
+                        if (client.isNotEmpty() && now - it.lastSeenMs > 1_000) it.copy(bytesServed = it.bytesServed + n, lastClientAddress = client, lastSeenMs = now)
+                        else it.copy(bytesServed = it.bytesServed + n)
+                    }
                 }
             }
         }
@@ -841,6 +874,8 @@ class HttpServer(
 
     companion object {
         const val PORT = 8080
+        /** Downloads only; see [start]. */
+        const val DOWNLOAD_PORT = 8081
         const val RELATIVE_PATH = "Download/Twinkle"
         private const val TAG = "TwinkleHttp"
         private const val MAX_CONNECTIONS = 32

@@ -42,7 +42,10 @@ object ApkInstaller {
                     write(session, "base.apk", it)
                 }
             }
-            val callback = Intent(ACTION_RESULT).setPackage(context.packageName)
+            // Explicit component: InstallReceiver has no intent filter (it is not exported), so an implicit intent
+            // (action + package) is never delivered to it. Then the system's "Install?" confirmation never opened
+            // and tapping Install did nothing at all.
+            val callback = Intent(context, InstallReceiver::class.java).setAction(ACTION_RESULT)
             // The system fills in the status extras, so the PendingIntent has to be mutable.
             val pending = PendingIntent.getBroadcast(context, id, callback, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
             session.commit(pending.intentSender)
