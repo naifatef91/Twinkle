@@ -299,8 +299,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
                 }
             }
 
-            item { SectionHeader(stringResource(R.string.upd_section)) }
-            item { UpdateCard() }
+            // Play in-app updates exist only in the Play build; the direct APK is updated by installing a newer APK.
+            if (BuildConfig.PLAY_UPDATES) {
+                item { SectionHeader(stringResource(R.string.upd_section)) }
+                item { UpdateCard() }
+            }
 
             item { SectionHeader(stringResource(R.string.settings_about_section)) }
             item {

@@ -43,10 +43,17 @@ MediaStore (Download/Twinkle) ──ACK──────▶     DONE
 Requirements: JDK 17, Android SDK 35, Gradle wrapper included. `minSdk 29` (Android 10).
 
 ```bash
-./gradlew :app:assembleDebug
+./gradlew :app:assembleDirectDebug
 ```
 
-The APK lands in `app/build/outputs/apk/debug/app-debug.apk`. On Xiaomi/HyperOS phones enable **Install via USB** in Developer options before `adb install`.
+The APK lands in `app/build/outputs/apk/direct/debug/app-direct-debug.apk`.
+
+Two flavors:
+
+| Flavor | Package | Use | Command |
+|---|---|---|---|
+| `play` | `app.twinkle` | Google Play upload (in-app updates through Play) | `./gradlew :app:bundlePlayRelease` |
+| `direct` | `app.twinkle.direct` | APK shared outside Play; no Google Play libraries, can be installed next to the Play app | `./gradlew :app:assembleDirectRelease` | On Xiaomi/HyperOS phones enable **Install via USB** in Developer options before `adb install`.
 
 ## البنية · Layout
 
