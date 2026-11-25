@@ -114,4 +114,4 @@ Twinkle transfers files directly between two devices over a local Wi-Fi Direct o
 
 - `versionCode 2`، `versionName 1.1.0` (الإصدار 1.1 حسب وثيقة المواصفات).
 - مسار الرفع: Internal testing أولًا، ثم Closed testing مع 12 مختبرًا لمدة 14 يومًا (شرط الحسابات الشخصية الجديدة)، ثم Production.
-- الملف المرفوع: `app/build/outputs/bundle/release/app-release.aab` موقّع بمفتاح الرفع في `keystore/upload.jks` (غير مُضمَّن في Git، احتفظ بنسخة احتياطية).
+- الملف المرفوع: `app/build/outputs/bundle/playRelease/app-play-release.aab (`./gradlew :app:bundlePlayRelease`)` موقّع بمفتاح الرفع في `keystore/upload.jks` (غير مُضمَّن في Git، احتفظ بنسخة احتياطية).

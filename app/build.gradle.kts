@@ -28,6 +28,24 @@ android {
         buildConfigField("boolean", "EXPERIMENTAL_DEFAULT", (project.findProperty("shipExperimental") ?: "false").toString())
     }
 
+    // play:   the Google Play build (app.twinkle). Upload with ./gradlew :app:bundlePlayRelease
+    // direct: an APK shared outside Play (website, Drive, Telegram). Its own package, app.twinkle.direct, so it
+    //         never collides with the Play install's signature or updates; no Google Play libraries are linked.
+    //         Build with ./gradlew :app:assembleDirectRelease
+    flavorDimensions += "store"
+    productFlavors {
+        create("play") {
+            dimension = "store"
+            buildConfigField("boolean", "PLAY_UPDATES", "true")
+        }
+        create("direct") {
+            dimension = "store"
+            applicationIdSuffix = ".direct"
+            versionNameSuffix = "-direct"
+            buildConfigField("boolean", "PLAY_UPDATES", "false")
+        }
+    }
+
     signingConfigs {
         if (hasUploadKey) {
             create("upload") {
@@ -85,7 +103,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)
-    implementation(libs.play.app.update)
+    "playImplementation"(libs.play.app.update)
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(libs.junit)
 }
