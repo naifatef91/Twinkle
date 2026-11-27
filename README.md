@@ -79,4 +79,6 @@ Everything stays between the two devices. No accounts, servers, analytics or ads
 
 ## الترخيص · License
 
-Not decided yet. Fonts: [Readex Pro](https://fonts.google.com/specimen/Readex+Pro) and [IBM Plex Sans Arabic](https://fonts.google.com/specimen/IBM+Plex+Sans+Arabic) under the SIL Open Font License.
+© 2026 NA Group. جميع الحقوق محفوظة · All rights reserved. Proprietary software, not open source; see [LICENSE](LICENSE).
+
+Fonts: [Readex Pro](https://fonts.google.com/specimen/Readex+Pro) and [IBM Plex Sans Arabic](https://fonts.google.com/specimen/IBM+Plex+Sans+Arabic) under the SIL Open Font License.

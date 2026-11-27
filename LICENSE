@@ -1,0 +1,11 @@
+Copyright (c) 2026 NA Group. All rights reserved.
+
+Twinkle, including its source code, design, text, images, logo and name, is
+the proprietary property of NA Group. No part of it may be copied, modified,
+distributed, published, sublicensed, reverse engineered or used to create
+derivative works, in whole or in part, without the prior written permission
+of NA Group.
+
+Third-party components keep their own licenses, including the Android and
+Jetpack libraries listed in app/build.gradle.kts, and the fonts Readex Pro and
+IBM Plex Sans Arabic under the SIL Open Font License.

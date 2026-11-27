@@ -2,6 +2,8 @@
 <resources>
     <!-- Shared -->
     <string name="legal_updated">Last updated: 2026-11-07</string>
+    <string name="terms_updated">Last updated: 2026-11-27</string>
+    <string name="about_copyright">© 2026 NA Group. All rights reserved.</string>
 
     <!-- About -->
     <string name="about_version">Version %1$s</string>
@@ -34,7 +36,7 @@
     <!-- Terms of use -->
     <string name="terms_intro">By using the Twinkle app (the «App») you agree to the following terms. If you do not agree to them, do not use the App.</string>
     <string name="terms_s1_title">1. License</string>
-    <string name="terms_s1_body">We grant you a personal, non-exclusive, non-transferable license to use the App on your devices to transfer files between phones and between a phone and a computer. You may not resell or rent the App, or remove any proprietary notices from it, except as permitted by the source-code license.</string>
+    <string name="terms_s1_body">The App and all of its contents, including its code, design, text, images, logo and the Twinkle name, are owned by NA Group. All rights reserved. We grant you a personal, non-exclusive, non-transferable license to use the App on your devices to transfer files between phones and between a phone and a computer. You may not copy, modify, redistribute, resell or rent the App, or remove any proprietary notices from it, without prior written permission from NA Group.</string>
     <string name="terms_s2_title">2. Your responsibility for files</string>
     <string name="terms_s2_body">You alone are responsible for the files you send or receive through the App, for holding the rights needed to share them, and for verifying the identity of the device you connect to before accepting a transfer or adding it to your trusted-device list. You are also responsible for the computer you allow to connect in PC mode and for what it downloads or uploads. We do not see or control your files and accept no responsibility for their content.</string>
     <string name="terms_s3_title">3. No warranty and experimental features</string>
