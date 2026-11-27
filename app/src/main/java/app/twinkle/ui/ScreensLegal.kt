@@ -32,6 +32,8 @@ fun AboutScreen(onBack: () -> Unit) {
         LegalSection(R.string.about_desc_title, R.string.about_desc_body)
         LegalSection(R.string.about_never_title, R.string.about_never_body)
         LegalSection(R.string.about_how_title, R.string.about_how_body)
+        Spacer(Modifier.height(24.dp))
+        LegalMeta(stringResource(R.string.about_copyright))
     }
 }
 
@@ -54,7 +56,7 @@ fun PrivacyScreen(onBack: () -> Unit) {
 @Composable
 fun TermsScreen(onBack: () -> Unit) {
     LegalPage(stringResource(R.string.settings_terms), onBack) {
-        LegalMeta(stringResource(R.string.legal_updated))
+        LegalMeta(stringResource(R.string.terms_updated))
         LegalBody(R.string.terms_intro)
         LegalSection(R.string.terms_s1_title, R.string.terms_s1_body)
         LegalSection(R.string.terms_s2_title, R.string.terms_s2_body)
