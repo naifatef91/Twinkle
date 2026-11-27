@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 class TransferService : LifecycleService() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: WifiManager.WifiLock? = null
+    private var wifiPerfLock: WifiManager.WifiLock? = null
 
     /** The real artwork for the expanded notification; the status bar keeps the monochrome silhouette. */
     // The mipmap is an adaptive-icon XML on API 26+, so BitmapFactory would return null; render the drawable instead.
@@ -122,16 +123,36 @@ class TransferService : LifecycleService() {
             (applicationContext.getSystemService(WIFI_SERVICE) as WifiManager)
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "twinkle:transfer").apply { setReferenceCounted(false); acquire() }
         }.getOrNull()
+        // The low-latency lock only applies while the app is in front with the screen on. Leaving the app (another
+        // app, a call) let Wi-Fi power-saving back in, and a computer on PC mode saw multi-second stalls. The
+        // high-perf lock is not tied to the foreground; newer Android versions may ignore it, older ones honour it.
+        @Suppress("DEPRECATION")
+        wifiPerfLock = runCatching {
+            (applicationContext.getSystemService(WIFI_SERVICE) as WifiManager)
+                .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "twinkle:transfer-bg").apply { setReferenceCounted(false); acquire() }
+        }.getOrNull()
     }
 
     /** Safe to call more than once; each lock is released only if it is still held. */
     private fun releaseLocks() {
         runCatching { wakeLock?.let { if (it.isHeld) it.release() } }
         runCatching { wifiLock?.let { if (it.isHeld) it.release() } }
-        wakeLock = null; wifiLock = null
+        runCatching { wifiPerfLock?.let { if (it.isHeld) it.release() } }
+        wakeLock = null; wifiLock = null; wifiPerfLock = null
     }
 
+    /** What the notification shows now; reposting the same thing is skipped. */
+    private var shown: Pair<String, Int?>? = null
+
+    /**
+     * PC mode re-publishes its state on every stats tick (several times a second while a computer is connected),
+     * and each one reached here: the same notification was reposted about once a second for as long as PC mode
+     * ran, waking the notification system every time. Repost only when the text or the whole percent changes.
+     */
     private fun notify(text: String, fraction: Float?) {
+        val key = text to fraction?.let { (it * 100).toInt() }
+        if (key == shown) return
+        shown = key
         getSystemService(NOTIFICATION_SERVICE).let { nm ->
             (nm as android.app.NotificationManager).notify(NOTIF_ID, build(text, fraction))
         }

@@ -283,9 +283,11 @@
   }
   function updatePill() {
     if (locked) return;
-    var fresh = lastOk && (Date.now() - lastOk < 8000);
-    if (fails >= 5) setPill('err', 'انقطع الاتصال بالهاتف');
-    else if (fails >= 2) setPill('warn', 'جارٍ إعادة الاتصال…');
+    // A phone whose app is in the background (or on a call) answers slower while Wi-Fi saves power: seconds-long
+    // pauses are normal there. Only real silence counts: about 15-20 s of failed checks before "disconnected".
+    var fresh = lastOk && (Date.now() - lastOk < 15000);
+    if (fails >= 6) setPill('err', 'انقطع الاتصال بالهاتف');
+    else if (fails >= 3) setPill('warn', 'جارٍ إعادة الاتصال…');
     else if (fresh) setPill('ok', 'متصل بالهاتف' + (phone ? ' ' + phone : ''));
     else if (lastOk) setPill('warn', 'جارٍ إعادة الاتصال…');
     else setPill('wait', 'جارٍ الاتصال بالهاتف…');
@@ -329,10 +331,14 @@
   pinFromHash();
   window.addEventListener('hashchange', pinFromHash);
 
+  var statusBusy = false;
   function pollStatus() {
+    if (statusBusy) return;   // still waiting on the last one: a slow phone must not be buried under a queue of checks
+    statusBusy = true;
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/api/status?t=' + Date.now(), true);
-    xhr.timeout = 4000;
+    xhr.timeout = 8000;
+    xhr.onloadend = function () { statusBusy = false; };
     xhr.onload = function () {
       if (xhr.status === 401) { fails = 0; return showGate(); }
       if (xhr.status !== 200) return fail();
@@ -392,7 +398,7 @@
   function pollFiles() {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/api/files?t=' + Date.now(), true);
-    xhr.timeout = 4000;
+    xhr.timeout = 8000;
     xhr.onload = function () {
       if (xhr.status !== 200) return;
       try {
@@ -487,6 +493,7 @@
   function fileKey(f) { return f.name + '|' + f.size + '|' + (f.lastModified || 0); }
 
   function show(job, loaded) {
+    if (loaded > job.loaded) { lastOk = Date.now(); fails = 0; }   // bytes reaching the phone: it is connected
     var size = job.file.size, frac = size ? Math.min(1, loaded / size) : 1;
     job.loaded = loaded;
     job.fill.style.width = (frac * 100).toFixed(1) + '%';
